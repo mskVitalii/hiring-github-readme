@@ -20,6 +20,8 @@ export default function SearchBar({ onSearch, isLoading }: Props) {
     <form onSubmit={handleSubmit} className='w-full max-w-xl mx-auto'>
       <div className='flex gap-2'>
         <input
+          id='github-profile-input'
+          name='githubProfile'
           type='text'
           value={input}
           onChange={(e) => setInput(e.target.value)}

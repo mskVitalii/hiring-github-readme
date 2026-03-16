@@ -117,7 +117,7 @@ function renderGfm(md: string): string {
   // Links
   html = html.replace(
     /\[([^\]]+)\]\(([^)]+)\)/g,
-    '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-gh-accent hover:underline">$1</a>',
+    '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-gh-accent underline underline-offset-2 decoration-1 hover:decoration-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gh-accent/70 rounded-sm">$1</a>',
   );
 
   // Bold

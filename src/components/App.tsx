@@ -78,14 +78,14 @@ export default function App() {
       )}
 
       {/* Footer */}
-      <footer className='mt-auto py-6 text-center text-xs text-gh-text-secondary space-y-1'>
+      <footer className='mt-auto py-6 text-center text-sm text-gh-text/85 space-y-1'>
         <p>
           Made by{' '}
           <a
             href='https://www.linkedin.com/in/mskvitalii/'
             target='_blank'
             rel='noopener noreferrer'
-            className='text-gh-accent hover:underline'
+            className='text-gh-accent underline underline-offset-2 decoration-1 hover:decoration-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gh-accent/70 rounded-sm'
           >
             Vitalii Popov
           </a>
@@ -96,7 +96,7 @@ export default function App() {
             href='https://docs.github.com/en/rest'
             target='_blank'
             rel='noopener noreferrer'
-            className='text-gh-accent hover:underline'
+            className='text-gh-accent underline underline-offset-2 decoration-1 hover:decoration-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gh-accent/70 rounded-sm'
           >
             GitHub API
           </a>

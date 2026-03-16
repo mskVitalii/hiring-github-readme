@@ -33,7 +33,7 @@ jobs:
       - run: bun run build
         env:
           PUBLIC_GA_ID: ${{ secrets.PUBLIC_GA_ID }}
-          PUBLIC_SENTRY_DSN: ${{ secrets.PUBLIC_SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - uses: actions/upload-pages-artifact@v3
         with:

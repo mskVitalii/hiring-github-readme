@@ -1,10 +1,12 @@
-# Astro Starter Kit: Minimal
+# Hiring GitHub Readme
 
-```sh
-bun create astro@latest -- --template minimal
-```
+Scan any GitHub profile to extract developer skills and technologies. Built for HR and recruiters.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+**Author:** [Vitalii Popov](https://www.linkedin.com/in/mskvitalii/)
+
+## Tech Stack
+
+Astro + React + TypeScript + Tailwind CSS + Sentry + Google Analytics
 
 ## 🚀 Project Structure
 
@@ -29,9 +31,9 @@ Any static assets, like images, can be placed in the `public/` directory.
 
 All commands are run from the root of the project, from a terminal:
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `bun install`             | Installs dependencies                            |
+| Command               | Action                                           |
+| :-------------------- | :----------------------------------------------- |
+| `bun install`         | Installs dependencies                            |
 | `bun dev`             | Starts local dev server at `localhost:4321`      |
 | `bun build`           | Build your production site to `./dist/`          |
 | `bun preview`         | Preview your build locally, before deploying     |

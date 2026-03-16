@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mskvitalii.github.io/hiring-github-readme/sitemap-index.xml

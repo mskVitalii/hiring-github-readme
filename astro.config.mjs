@@ -1,6 +1,7 @@
 // @ts-check
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
+import sentry from '@sentry/astro';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 
@@ -10,7 +11,15 @@ export default defineConfig({
   base: '/hiring-github-readme',
   output: 'static',
 
-  integrations: [react(), sitemap()],
+  integrations: [
+    react(),
+    sitemap(),
+    sentry({
+      project: 'javascript-astro',
+      org: 'hiring-github-readme',
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+    }),
+  ],
 
   vite: {
     plugins: [tailwindcss()],

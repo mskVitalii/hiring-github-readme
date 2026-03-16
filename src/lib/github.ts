@@ -142,29 +142,41 @@ async function fetchRepoLanguages(
 function detectSkillsFromRepos(
   repos: GitHubRepo[],
   languageMaps: Map<string, RepoLanguages>,
-): Map<string, { repos: Set<string>; urls: Set<string> }> {
-  const skillMap = new Map<string, { repos: Set<string>; urls: Set<string> }>();
+): Map<
+  string,
+  { repos: Map<string, { url: string; homepage: string | null }> }
+> {
+  const skillMap = new Map<
+    string,
+    { repos: Map<string, { url: string; homepage: string | null }> }
+  >();
 
-  const addSkill = (skillName: string, repoName: string, repoUrl: string) => {
+  const addSkill = (
+    skillName: string,
+    repoName: string,
+    repoUrl: string,
+    homepage: string | null,
+  ) => {
     if (!skillMap.has(skillName)) {
-      skillMap.set(skillName, { repos: new Set(), urls: new Set() });
+      skillMap.set(skillName, { repos: new Map() });
     }
     const entry = skillMap.get(skillName)!;
-    entry.repos.add(repoName);
-    entry.urls.add(repoUrl);
+    if (!entry.repos.has(repoName)) {
+      entry.repos.set(repoName, { url: repoUrl, homepage });
+    }
   };
 
   for (const repo of repos) {
     // 1. Detect from primary language
     if (repo.language) {
-      addSkill(repo.language, repo.name, repo.html_url);
+      addSkill(repo.language, repo.name, repo.html_url, repo.homepage);
     }
 
     // 2. Detect from language breakdown
     const langs = languageMaps.get(repo.name);
     if (langs) {
       for (const lang of Object.keys(langs)) {
-        addSkill(lang, repo.name, repo.html_url);
+        addSkill(lang, repo.name, repo.html_url, repo.homepage);
       }
     }
 
@@ -175,7 +187,7 @@ function detectSkillsFromRepos(
 
     for (const [skillName, keywords] of Object.entries(TECH_KEYWORDS)) {
       if (keywords.some((kw) => searchText.includes(kw))) {
-        addSkill(skillName, repo.name, repo.html_url);
+        addSkill(skillName, repo.name, repo.html_url, repo.homepage);
       }
     }
   }
@@ -185,7 +197,10 @@ function detectSkillsFromRepos(
 
 /** Organize detected skills into categories */
 function categorizeSkills(
-  skillMap: Map<string, { repos: Set<string>; urls: Set<string> }>,
+  skillMap: Map<
+    string,
+    { repos: Map<string, { url: string; homepage: string | null }> }
+  >,
 ): SkillCategory[] {
   const categories: SkillCategory[] = [];
 
@@ -195,10 +210,12 @@ function categorizeSkills(
     for (const skillName of skillNames) {
       const data = skillMap.get(skillName);
       if (data && data.repos.size > 0) {
+        const repoEntries = [...data.repos.entries()];
         skills.push({
           name: skillName,
-          repos: [...data.repos],
-          repoUrls: [...data.urls],
+          repos: repoEntries.map(([name]) => name),
+          repoUrls: repoEntries.map(([, info]) => info.url),
+          repoHomepages: repoEntries.map(([, info]) => info.homepage),
         });
       }
     }
@@ -216,10 +233,12 @@ function categorizeSkills(
 
   for (const [skillName, data] of skillMap) {
     if (!allCategorized.has(skillName) && data.repos.size > 0) {
+      const repoEntries = [...data.repos.entries()];
       uncategorized.push({
         name: skillName,
-        repos: [...data.repos],
-        repoUrls: [...data.urls],
+        repos: repoEntries.map(([name]) => name),
+        repoUrls: repoEntries.map(([, info]) => info.url),
+        repoHomepages: repoEntries.map(([, info]) => info.homepage),
       });
     }
   }

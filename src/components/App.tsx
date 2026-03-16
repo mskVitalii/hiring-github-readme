@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { parseUsername, scanUser, type ScanProgress } from '../lib/github';
-import '../lib/sentry';
 import type { ScanResult } from '../lib/types';
+import MarkdownPreview from './MarkdownPreview';
 import ProgressBar from './ProgressBar';
 import SearchBar from './SearchBar';
 import SkillsList from './SkillsList';
@@ -66,18 +66,30 @@ export default function App() {
 
       {/* Results */}
       {result && (
-        <section className='px-4 py-8 space-y-6'>
+        <section className='px-4 py-8 space-y-8'>
           <UserCard
             user={result.user}
             totalRepos={result.totalRepos}
             scannedRepos={result.scannedRepos}
           />
           <SkillsList categories={result.categories} />
+          <MarkdownPreview result={result} />
         </section>
       )}
 
       {/* Footer */}
-      <footer className='mt-auto py-6 text-center text-xs text-gh-text-secondary'>
+      <footer className='mt-auto py-6 text-center text-xs text-gh-text-secondary space-y-1'>
+        <p>
+          Made by{' '}
+          <a
+            href='https://www.linkedin.com/in/mskvitalii/'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='text-gh-accent hover:underline'
+          >
+            Vitalii Popov
+          </a>
+        </p>
         <p>
           Data from{' '}
           <a

@@ -10,6 +10,7 @@ export interface GitHubUser {
 export interface GitHubRepo {
   name: string;
   html_url: string;
+  homepage: string | null;
   description: string | null;
   language: string | null;
   topics: string[];
@@ -32,6 +33,7 @@ export interface Skill {
   name: string;
   repos: string[];
   repoUrls: string[];
+  repoHomepages: (string | null)[];
 }
 
 export interface ScanResult {

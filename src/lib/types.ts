@@ -15,6 +15,7 @@ export interface GitHubRepo {
   language: string | null;
   topics: string[];
   stargazers_count: number;
+  updated_at: string;
   fork: boolean;
   archived: boolean;
   size: number;
@@ -34,6 +35,9 @@ export interface Skill {
   repos: string[];
   repoUrls: string[];
   repoHomepages: (string | null)[];
+  repoStars: number[];
+  repoUpdatedAt: string[];
+  repoArchived: boolean[];
 }
 
 export interface ScanResult {

@@ -3,9 +3,16 @@ import { useState, type FormEvent } from 'react';
 interface Props {
   onSearch: (username: string) => void;
   isLoading: boolean;
+  includeArchived: boolean;
+  onIncludeArchivedChange: (value: boolean) => void;
 }
 
-export default function SearchBar({ onSearch, isLoading }: Props) {
+export default function SearchBar({
+  onSearch,
+  isLoading,
+  includeArchived,
+  onIncludeArchivedChange,
+}: Props) {
   const [input, setInput] = useState('');
 
   const handleSubmit = (e: FormEvent) => {
@@ -38,6 +45,16 @@ export default function SearchBar({ onSearch, isLoading }: Props) {
           {isLoading ? 'Scanning…' : 'Scan'}
         </button>
       </div>
+      <label className='mt-3 inline-flex items-center gap-2 text-sm text-gh-text-secondary select-none'>
+        <input
+          type='checkbox'
+          checked={includeArchived}
+          onChange={(e) => onIncludeArchivedChange(e.target.checked)}
+          disabled={isLoading}
+          className='h-4 w-4 rounded border-gh-border bg-gh-bg-secondary text-gh-accent focus:ring-gh-accent disabled:opacity-50'
+        />
+        Include archived repositories
+      </label>
     </form>
   );
 }

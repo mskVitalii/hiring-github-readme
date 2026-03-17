@@ -12,25 +12,31 @@ export default function App() {
   const [progress, setProgress] = useState<ScanProgress | null>(null);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [includeArchived, setIncludeArchived] = useState(true);
 
-  const handleSearch = useCallback(async (input: string) => {
-    const username = parseUsername(input);
-    if (!username) return;
+  const handleSearch = useCallback(
+    async (input: string) => {
+      const username = parseUsername(input);
+      if (!username) return;
 
-    setIsLoading(true);
-    setError(null);
-    setResult(null);
-    setProgress({ phase: 'user' });
+      setIsLoading(true);
+      setError(null);
+      setResult(null);
+      setProgress({ phase: 'user' });
 
-    try {
-      const scanResult = await scanUser(username, setProgress);
-      setResult(scanResult);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      try {
+        const scanResult = await scanUser(username, setProgress, {
+          includeArchived,
+        });
+        setResult(scanResult);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Something went wrong');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [includeArchived],
+  );
 
   return (
     <main className='min-h-screen flex flex-col'>
@@ -47,7 +53,12 @@ export default function App() {
 
       {/* Search */}
       <section className='px-4'>
-        <SearchBar onSearch={handleSearch} isLoading={isLoading} />
+        <SearchBar
+          onSearch={handleSearch}
+          isLoading={isLoading}
+          includeArchived={includeArchived}
+          onIncludeArchivedChange={setIncludeArchived}
+        />
       </section>
 
       {/* Progress */}

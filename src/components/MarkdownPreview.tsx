@@ -9,8 +9,21 @@ interface Props {
 export default function MarkdownPreview({ result }: Props) {
   const [copied, setCopied] = useState(false);
   const [tab, setTab] = useState<'preview' | 'raw'>('preview');
+  const [showStars, setShowStars] = useState(true);
+  const [showDemo, setShowDemo] = useState(true);
+  const [showArchived, setShowArchived] = useState(true);
+  const [showTopics, setShowTopics] = useState(true);
 
-  const markdown = useMemo(() => generateMarkdown(result), [result]);
+  const markdown = useMemo(
+    () =>
+      generateMarkdown(result, {
+        showStars,
+        showDemo,
+        showArchived,
+        showTopics,
+      }),
+    [result, showArchived, showDemo, showStars, showTopics],
+  );
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(markdown);
@@ -22,27 +35,69 @@ export default function MarkdownPreview({ result }: Props) {
     <div className='w-full max-w-3xl mx-auto'>
       {/* Toolbar */}
       <div className='flex items-center justify-between border border-gh-border rounded-t-lg bg-gh-bg-secondary px-4 py-2'>
-        <div className='flex gap-1'>
-          <button
-            onClick={() => setTab('preview')}
-            className={`px-3 py-1.5 rounded text-sm font-medium transition-colors cursor-pointer ${
-              tab === 'preview'
-                ? 'bg-gh-bg text-gh-text border border-gh-border'
-                : 'text-gh-text-secondary hover:text-gh-text'
-            }`}
-          >
-            Preview
-          </button>
-          <button
-            onClick={() => setTab('raw')}
-            className={`px-3 py-1.5 rounded text-sm font-medium transition-colors cursor-pointer ${
-              tab === 'raw'
-                ? 'bg-gh-bg text-gh-text border border-gh-border'
-                : 'text-gh-text-secondary hover:text-gh-text'
-            }`}
-          >
-            Markdown
-          </button>
+        <div className='flex items-center gap-3 flex-wrap'>
+          <div className='flex gap-1'>
+            <button
+              onClick={() => setTab('preview')}
+              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors cursor-pointer ${
+                tab === 'preview'
+                  ? 'bg-gh-bg text-gh-text border border-gh-border'
+                  : 'text-gh-text-secondary hover:text-gh-text'
+              }`}
+            >
+              Preview
+            </button>
+            <button
+              onClick={() => setTab('raw')}
+              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors cursor-pointer ${
+                tab === 'raw'
+                  ? 'bg-gh-bg text-gh-text border border-gh-border'
+                  : 'text-gh-text-secondary hover:text-gh-text'
+              }`}
+            >
+              Markdown
+            </button>
+          </div>
+
+          <label className='inline-flex items-center gap-2 text-xs text-gh-text-secondary select-none'>
+            <input
+              type='checkbox'
+              checked={showStars}
+              onChange={(e) => setShowStars(e.target.checked)}
+              className='h-4 w-4 rounded border-gh-border bg-gh-bg text-gh-accent focus:ring-gh-accent'
+            />
+            Stars
+          </label>
+
+          <label className='inline-flex items-center gap-2 text-xs text-gh-text-secondary select-none'>
+            <input
+              type='checkbox'
+              checked={showDemo}
+              onChange={(e) => setShowDemo(e.target.checked)}
+              className='h-4 w-4 rounded border-gh-border bg-gh-bg text-gh-accent focus:ring-gh-accent'
+            />
+            Demo
+          </label>
+
+          <label className='inline-flex items-center gap-2 text-xs text-gh-text-secondary select-none'>
+            <input
+              type='checkbox'
+              checked={showArchived}
+              onChange={(e) => setShowArchived(e.target.checked)}
+              className='h-4 w-4 rounded border-gh-border bg-gh-bg text-gh-accent focus:ring-gh-accent'
+            />
+            Archived
+          </label>
+
+          <label className='inline-flex items-center gap-2 text-xs text-gh-text-secondary select-none'>
+            <input
+              type='checkbox'
+              checked={showTopics}
+              onChange={(e) => setShowTopics(e.target.checked)}
+              className='h-4 w-4 rounded border-gh-border bg-gh-bg text-gh-accent focus:ring-gh-accent'
+            />
+            Topics
+          </label>
         </div>
         <button
           onClick={handleCopy}

@@ -1,26 +1,33 @@
 import type { ScanResult } from './types';
 
+export interface MarkdownOptions {
+  showStars?: boolean;
+  showDemo?: boolean;
+  showArchived?: boolean;
+  showTopics?: boolean;
+}
+
 const FRAMEWORK_LANGUAGE_MAP: Record<string, string> = {
-  React: 'JavaScript/TypeScript',
-  Vue: 'JavaScript/TypeScript',
+  React: 'TS/JS',
+  Vue: 'TS/JS',
   Angular: 'TypeScript',
-  Svelte: 'TypeScript/JavaScript',
-  'Next.js': 'TypeScript/JavaScript',
-  Nuxt: 'TypeScript/JavaScript',
-  Astro: 'TypeScript/JavaScript',
-  Gatsby: 'TypeScript/JavaScript',
+  Svelte: 'TS/JS',
+  'Next.js': 'TS/JS',
+  Nuxt: 'TS/JS',
+  Astro: 'TS/JS',
+  Gatsby: 'TS/JS',
   'Tailwind CSS': 'CSS',
   Bootstrap: 'CSS',
-  'Material UI': 'TypeScript/JavaScript',
-  'Styled Components': 'TypeScript/JavaScript',
+  'Material UI': 'TS/JS',
+  'Styled Components': 'TS/JS',
   Sass: 'CSS',
-  Redux: 'TypeScript/JavaScript',
-  Zustand: 'TypeScript/JavaScript',
-  Vite: 'TypeScript/JavaScript',
+  Redux: 'TS/JS',
+  Zustand: 'TS/JS',
+  Vite: 'TS/JS',
   Webpack: 'JavaScript',
-  'Node.js': 'JavaScript/TypeScript',
-  Express: 'JavaScript/TypeScript',
-  Fastify: 'JavaScript/TypeScript',
+  'Node.js': 'TS/JS',
+  Express: 'TS/JS',
+  Fastify: 'TS/JS',
   NestJS: 'TypeScript',
   Django: 'Python',
   Flask: 'Python',
@@ -31,7 +38,7 @@ const FRAMEWORK_LANGUAGE_MAP: Record<string, string> = {
   Gin: 'Go',
   Fiber: 'Go',
   Actix: 'Rust',
-  'React Native': 'TypeScript/JavaScript',
+  'React Native': 'TS/JS',
   Flutter: 'Dart',
   SwiftUI: 'Swift',
 };
@@ -48,9 +55,36 @@ function toAnchor(text: string): string {
     .replace(/(^-|-$)/g, '')}`;
 }
 
+function skillBadgeUrl(label: string): string {
+  const q = new URLSearchParams({
+    label: '',
+    message: label,
+    color: '58a6ff',
+    style: 'flat',
+  });
+  return `https://img.shields.io/static/v1?${q.toString()}`;
+}
+
+function topicBadgeUrl(topic: string): string {
+  const q = new URLSearchParams({
+    label: 'topic',
+    message: topic,
+    color: '6e7681',
+    style: 'flat-square',
+  });
+  return `https://img.shields.io/static/v1?${q.toString()}`;
+}
+
 /** Generate GitHub-flavored markdown for a user's skills */
-export function generateMarkdown(result: ScanResult): string {
+export function generateMarkdown(
+  result: ScanResult,
+  options: MarkdownOptions = {},
+): string {
   const { user, categories } = result;
+  const showStars = options.showStars ?? true;
+  const showDemo = options.showDemo ?? true;
+  const showArchived = options.showArchived ?? true;
+  const showTopics = options.showTopics ?? true;
   const lines: string[] = [];
 
   // Header
@@ -64,14 +98,8 @@ export function generateMarkdown(result: ScanResult): string {
     lines.push(`### ${category.name}`);
     const badges = category.skills.map((skill) => {
       const displayName = skillDisplayName(skill.name);
-      const label = displayName
-        .replace(/-/g, '--')
-        .replace(/#/g, '%23')
-        .replace(/\+/g, '%2B')
-        .replace(/\./g, '.')
-        .replace(/ /g, '%20');
       const anchor = toAnchor(displayName);
-      return `[![${displayName}](https://img.shields.io/badge/${label}-informational?style=flat&color=58a6ff)](${anchor})`;
+      return `[![${displayName}](${skillBadgeUrl(displayName)})](${anchor})`;
     });
     lines.push(badges.join(' '));
     lines.push('');
@@ -93,6 +121,7 @@ export function generateMarkdown(result: ScanResult): string {
         repoName,
         repoUrl: skill.repoUrls[i],
         homepage: skill.repoHomepages[i],
+        topics: skill.repoTopics[i] ?? [],
         stars: skill.repoStars[i] ?? 0,
         updatedAt: skill.repoUpdatedAt[i] ?? '',
         archived: skill.repoArchived[i] ?? false,
@@ -107,16 +136,30 @@ export function generateMarkdown(result: ScanResult): string {
 
       for (const repo of repos) {
         let line = `- [${repo.repoName}](${repo.repoUrl})`;
-        if (repo.archived) {
+        if (showArchived && repo.archived) {
           line += ` [![archived](https://img.shields.io/badge/archived-yes-6e7781?style=flat-square)](${repo.repoUrl})`;
         }
-        if (repo.stars > 0) {
+        if (showStars && repo.stars > 0) {
           line += ` [![stars](https://img.shields.io/badge/stars-${repo.stars}-1f6feb?style=flat-square)](${repo.repoUrl})`;
         }
-        if (repo.homepage) {
+        if (showDemo && repo.homepage) {
           line += ` [![demo](https://img.shields.io/badge/demo-live-2ea043?style=flat-square)](${repo.homepage})`;
         }
         lines.push(line);
+
+        if (showTopics) {
+          const topics = repo.topics
+            .filter(Boolean)
+            .slice(0, 6)
+            .map(
+              (topic) =>
+                `[![${topic}](${topicBadgeUrl(topic)})](${repo.repoUrl})`,
+            );
+
+          if (topics.length > 0) {
+            lines.push(`  ${topics.join(' ')}`);
+          }
+        }
       }
       lines.push('');
     }

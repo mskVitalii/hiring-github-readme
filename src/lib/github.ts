@@ -171,16 +171,33 @@ async function fetchRepoLanguages(
   return langs;
 }
 
-/** Fetch root-level file/dir names for a repo (used for infra detection) */
-async function fetchRepoRootFiles(
+/** Fetch repository file tree paths (used for infra detection, including nested folders) */
+async function fetchRepoTreePaths(
   owner: string,
   repo: string,
 ): Promise<string[]> {
-  const cacheKey = `gh_root_${owner}_${repo}`;
+  const cacheKey = `gh_tree_${owner}_${repo}`;
   const cached = getCached<string[]>(cacheKey);
   if (cached) return cached;
 
   try {
+    const tree = await ghFetch<{
+      tree?: Array<{ path?: string; type?: string }>;
+      truncated?: boolean;
+    }>(
+      `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/trees/HEAD?recursive=1`,
+    );
+    const paths =
+      tree.tree
+        ?.map((entry) => entry.path?.toLowerCase())
+        .filter((v): v is string => Boolean(v)) ?? [];
+
+    if (paths.length > 0) {
+      setCache(cacheKey, paths);
+      return paths;
+    }
+
+    // Fallback for repos where recursive tree isn't available.
     const contents = await ghFetch<Array<{ name: string; type: string }>>(
       `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/`,
     );
@@ -208,6 +225,7 @@ function detectSkillsFromRepos(
         stars: number;
         updatedAt: string;
         archived: boolean;
+        topics: string[];
       }
     >;
   }
@@ -222,6 +240,7 @@ function detectSkillsFromRepos(
           homepage: string | null;
           stars: number;
           updatedAt: string;
+          topics: string[];
           archived: boolean;
         }
       >;
@@ -233,6 +252,7 @@ function detectSkillsFromRepos(
     repoName: string,
     repoUrl: string,
     homepage: string | null,
+    topics: string[],
     stars: number,
     updatedAt: string,
     archived: boolean,
@@ -245,6 +265,7 @@ function detectSkillsFromRepos(
       entry.repos.set(repoName, {
         url: repoUrl,
         homepage,
+        topics,
         stars,
         updatedAt,
         archived,
@@ -262,6 +283,7 @@ function detectSkillsFromRepos(
           repo.name,
           repo.html_url,
           repo.homepage,
+          repo.topics,
           repo.stargazers_count,
           repo.updated_at,
           repo.archived,
@@ -280,6 +302,7 @@ function detectSkillsFromRepos(
             repo.name,
             repo.html_url,
             repo.homepage,
+            repo.topics,
             repo.stargazers_count,
             repo.updated_at,
             repo.archived,
@@ -300,6 +323,7 @@ function detectSkillsFromRepos(
           repo.name,
           repo.html_url,
           repo.homepage,
+          repo.topics,
           repo.stargazers_count,
           repo.updated_at,
           repo.archived,
@@ -307,24 +331,25 @@ function detectSkillsFromRepos(
       }
     }
 
-    // 4. Detect from root directory structure (infra repos only)
-    // This catches k8s manifests, GitHub Actions workflows, Helm charts, Terraform configs
+    // 4. Detect from repository file tree (infra/testing candidates)
+    // This catches infra/testing patterns even when topics/descriptions are missing.
     // even when the developer hasn't set explicit topics.
-    const rootFiles = rootFilesMap.get(repo.name) ?? [];
-    if (rootFiles.length > 0) {
+    const repoPaths = rootFilesMap.get(repo.name) ?? [];
+    if (repoPaths.length > 0) {
       // GitHub Actions: .github directory is a reliable signal
-      if (rootFiles.includes('.github')) {
+      if (repoPaths.some((p) => p === '.github' || p.startsWith('.github/'))) {
         addSkill(
           'GitHub Actions',
           repo.name,
           repo.html_url,
           repo.homepage,
+          repo.topics,
           repo.stargazers_count,
           repo.updated_at,
           repo.archived,
         );
       }
-      // Kubernetes: canonical directory names used by the community
+      // Kubernetes: canonical folder names anywhere in the repository tree
       const k8sIndicators = [
         'k8s',
         'kubernetes',
@@ -335,8 +360,10 @@ function detectSkillsFromRepos(
         'argocd',
       ];
       if (
-        rootFiles.some((f) =>
-          k8sIndicators.some((d) => f === d || f.startsWith(d)),
+        repoPaths.some((p) =>
+          k8sIndicators.some(
+            (d) => p.split('/').includes(d) || p.startsWith(`${d}/`),
+          ),
         )
       ) {
         addSkill(
@@ -344,19 +371,23 @@ function detectSkillsFromRepos(
           repo.name,
           repo.html_url,
           repo.homepage,
+          repo.topics,
           repo.stargazers_count,
           repo.updated_at,
           repo.archived,
         );
       }
-      // Helm: Chart.yaml at root = this IS a chart; charts/ = app with bundled chart
+      // Helm: chart metadata or chart folders in repo tree
       if (
-        rootFiles.some(
-          (f) =>
-            f === 'chart.yaml' ||
-            f === 'charts' ||
-            f === 'helmfile.yaml' ||
-            f === 'helmfile.yml',
+        repoPaths.some(
+          (p) =>
+            p === 'chart.yaml' ||
+            p.endsWith('/chart.yaml') ||
+            p.split('/').includes('charts') ||
+            p.endsWith('/helmfile.yaml') ||
+            p.endsWith('/helmfile.yml') ||
+            p === 'helmfile.yaml' ||
+            p === 'helmfile.yml',
         )
       ) {
         addSkill(
@@ -364,16 +395,19 @@ function detectSkillsFromRepos(
           repo.name,
           repo.html_url,
           repo.homepage,
+          repo.topics,
           repo.stargazers_count,
           repo.updated_at,
           repo.archived,
         );
       }
-      // Terraform: .tf files or terraform/ directory at root
+      // Terraform: .tf/.tfvars files or terraform/ directory anywhere
       if (
-        rootFiles.some(
-          (f) =>
-            f.endsWith('.tf') || f.endsWith('.tfvars') || f === 'terraform',
+        repoPaths.some(
+          (p) =>
+            p.endsWith('.tf') ||
+            p.endsWith('.tfvars') ||
+            p.split('/').includes('terraform'),
         )
       ) {
         addSkill(
@@ -381,6 +415,7 @@ function detectSkillsFromRepos(
           repo.name,
           repo.html_url,
           repo.homepage,
+          repo.topics,
           repo.stargazers_count,
           repo.updated_at,
           repo.archived,
@@ -388,9 +423,12 @@ function detectSkillsFromRepos(
       }
       // Ansible
       if (
-        rootFiles.some(
-          (f) =>
-            f === 'ansible' || f === 'galaxy.yml' || f.includes('playbook'),
+        repoPaths.some(
+          (p) =>
+            p.split('/').includes('ansible') ||
+            p === 'galaxy.yml' ||
+            p.endsWith('/galaxy.yml') ||
+            p.includes('playbook'),
         )
       ) {
         addSkill(
@@ -398,6 +436,158 @@ function detectSkillsFromRepos(
           repo.name,
           repo.html_url,
           repo.homepage,
+          repo.topics,
+          repo.stargazers_count,
+          repo.updated_at,
+          repo.archived,
+        );
+      }
+
+      // Storybook
+      if (
+        repoPaths.some(
+          (p) =>
+            p === '.storybook' ||
+            p.startsWith('.storybook/') ||
+            p.includes('.stories.'),
+        )
+      ) {
+        addSkill(
+          'Storybook',
+          repo.name,
+          repo.html_url,
+          repo.homepage,
+          repo.topics,
+          repo.stargazers_count,
+          repo.updated_at,
+          repo.archived,
+        );
+      }
+
+      // Testing tool detection from file conventions/configs
+      const hasJest = repoPaths.some(
+        (p) =>
+          p === 'jest.config.js' ||
+          p === 'jest.config.ts' ||
+          p.endsWith('/jest.config.js') ||
+          p.endsWith('/jest.config.ts') ||
+          p.includes('/__tests__/') ||
+          /\.(test|spec)\.[cm]?[jt]sx?$/.test(p),
+      );
+      if (hasJest) {
+        addSkill(
+          'Jest',
+          repo.name,
+          repo.html_url,
+          repo.homepage,
+          repo.topics,
+          repo.stargazers_count,
+          repo.updated_at,
+          repo.archived,
+        );
+      }
+
+      const hasVitest = repoPaths.some(
+        (p) =>
+          p === 'vitest.config.ts' ||
+          p === 'vitest.config.js' ||
+          p.endsWith('/vitest.config.ts') ||
+          p.endsWith('/vitest.config.js'),
+      );
+      if (hasVitest) {
+        addSkill(
+          'Vitest',
+          repo.name,
+          repo.html_url,
+          repo.homepage,
+          repo.topics,
+          repo.stargazers_count,
+          repo.updated_at,
+          repo.archived,
+        );
+      }
+
+      const hasCypress = repoPaths.some(
+        (p) =>
+          p === 'cypress' ||
+          p.startsWith('cypress/') ||
+          p === 'cypress.config.ts' ||
+          p === 'cypress.config.js' ||
+          p.endsWith('/cypress.config.ts') ||
+          p.endsWith('/cypress.config.js'),
+      );
+      if (hasCypress) {
+        addSkill(
+          'Cypress',
+          repo.name,
+          repo.html_url,
+          repo.homepage,
+          repo.topics,
+          repo.stargazers_count,
+          repo.updated_at,
+          repo.archived,
+        );
+      }
+
+      const hasPlaywright = repoPaths.some(
+        (p) =>
+          p === 'playwright.config.ts' ||
+          p === 'playwright.config.js' ||
+          p.endsWith('/playwright.config.ts') ||
+          p.endsWith('/playwright.config.js') ||
+          p.includes('/playwright/'),
+      );
+      if (hasPlaywright) {
+        addSkill(
+          'Playwright',
+          repo.name,
+          repo.html_url,
+          repo.homepage,
+          repo.topics,
+          repo.stargazers_count,
+          repo.updated_at,
+          repo.archived,
+        );
+      }
+
+      const hasPytest = repoPaths.some(
+        (p) =>
+          p === 'pytest.ini' ||
+          p.endsWith('/pytest.ini') ||
+          p === 'conftest.py' ||
+          p.endsWith('/conftest.py') ||
+          /(^|\/)test_.*\.py$/.test(p) ||
+          /_test\.py$/.test(p),
+      );
+      if (hasPytest) {
+        addSkill(
+          'Pytest',
+          repo.name,
+          repo.html_url,
+          repo.homepage,
+          repo.topics,
+          repo.stargazers_count,
+          repo.updated_at,
+          repo.archived,
+        );
+      }
+
+      const hasMocha = repoPaths.some(
+        (p) =>
+          p === '.mocharc.json' ||
+          p === '.mocharc.js' ||
+          p === 'mocha.opts' ||
+          p.endsWith('/.mocharc.json') ||
+          p.endsWith('/.mocharc.js') ||
+          p.endsWith('/mocha.opts'),
+      );
+      if (hasMocha) {
+        addSkill(
+          'Mocha',
+          repo.name,
+          repo.html_url,
+          repo.homepage,
+          repo.topics,
           repo.stargazers_count,
           repo.updated_at,
           repo.archived,
@@ -419,6 +609,7 @@ function categorizeSkills(
         {
           url: string;
           homepage: string | null;
+          topics: string[];
           stars: number;
           updatedAt: string;
           archived: boolean;
@@ -441,6 +632,7 @@ function categorizeSkills(
           repos: repoEntries.map(([name]) => name),
           repoUrls: repoEntries.map(([, info]) => info.url),
           repoHomepages: repoEntries.map(([, info]) => info.homepage),
+          repoTopics: repoEntries.map(([, info]) => info.topics),
           repoStars: repoEntries.map(([, info]) => info.stars),
           repoUpdatedAt: repoEntries.map(([, info]) => info.updatedAt),
           repoArchived: repoEntries.map(([, info]) => info.archived),
@@ -467,6 +659,7 @@ function categorizeSkills(
         repos: repoEntries.map(([name]) => name),
         repoUrls: repoEntries.map(([, info]) => info.url),
         repoHomepages: repoEntries.map(([, info]) => info.homepage),
+        repoTopics: repoEntries.map(([, info]) => info.topics),
         repoStars: repoEntries.map(([, info]) => info.stars),
         repoUpdatedAt: repoEntries.map(([, info]) => info.updatedAt),
         repoArchived: repoEntries.map(([, info]) => info.archived),
@@ -520,9 +713,8 @@ export async function scanUser(
     languageMaps.set(repo.name, langs);
   }
 
-  // Fetch root directory listings for repos with infra-like primary languages.
-  // These are the most likely to have k8s manifests, Terraform configs, etc.
-  // that are not reflected in topics/description. Capped to avoid rate limit pressure.
+  // Fetch repository tree paths for likely infra/testing repos.
+  // This improves detection from file structure while staying within rate limits.
   const infraLanguages = new Set([
     null,
     undefined,
@@ -534,16 +726,34 @@ export async function scanUser(
   const infraRepos = reposToScan.filter((r) =>
     infraLanguages.has(r.language ?? null),
   );
+
+  const testingLanguages = new Set(['JavaScript', 'TypeScript', 'Python']);
+  const testingHint =
+    /test|testing|storybook|cypress|playwright|jest|vitest|pytest|mocha/i;
+  const testingRepos = reposToScan
+    .filter((r) => {
+      if (testingLanguages.has(r.language ?? '')) return true;
+      const text = `${r.name} ${r.description ?? ''} ${r.topics.join(' ')}`;
+      return testingHint.test(text);
+    })
+    .slice(0, 12);
+
+  const treeRepoMap = new Map<string, GitHubRepo>();
+  for (const repo of [...infraRepos, ...testingRepos]) {
+    treeRepoMap.set(repo.name, repo);
+  }
+  const treeRepos = [...treeRepoMap.values()];
+
   const rootFilesMap = new Map<string, string[]>();
 
-  for (let i = 0; i < infraRepos.length; i++) {
+  for (let i = 0; i < treeRepos.length; i++) {
     onProgress?.({
       phase: 'languages',
       current: reposToScan.length + i + 1,
-      total: reposToScan.length + infraRepos.length,
+      total: reposToScan.length + treeRepos.length,
     });
-    const repo = infraRepos[i];
-    const files = await fetchRepoRootFiles(username, repo.name);
+    const repo = treeRepos[i];
+    const files = await fetchRepoTreePaths(username, repo.name);
     rootFilesMap.set(repo.name, files);
   }
 

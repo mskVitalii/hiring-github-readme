@@ -1,0 +1,65 @@
+name: Feature request
+description: Suggest an improvement to the product
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing an idea. Clear problem statements help us prioritize better.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Feature summary
+      description: Short title for your request
+      placeholder: Add export to PDF for generated profile summary
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What user pain does this feature address?
+      placeholder: Recruiters need a downloadable version to share internally
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the ideal behavior
+      placeholder: Add an Export button near Copy Markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other ways to solve this problem
+
+  - type: textarea
+    id: value
+    attributes:
+      label: Expected impact
+      description: Who benefits and how?
+      placeholder: Improves recruiter workflow and sharing speed
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - Nice to have
+        - Important
+        - Critical
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmations
+      options:
+        - label: I searched existing issues and did not find a duplicate
+          required: true

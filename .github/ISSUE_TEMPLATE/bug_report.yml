@@ -1,0 +1,87 @@
+name: Bug report
+description: Report a reproducible problem in the product
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please provide enough detail so we can reproduce and fix it quickly.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Short summary
+      description: One-line description of the issue
+      placeholder: Profile scan fails for valid GitHub username
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List clear steps
+      placeholder: |
+        1. Open the app
+        2. Enter username ...
+        3. Click Scan
+        4. See error ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      placeholder: Scanner should return categorized skills
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+      placeholder: Shows an error / empty output
+    validations:
+      required: true
+
+  - type: input
+    id: github_profile
+    attributes:
+      label: GitHub profile tested
+      description: Username or profile URL used in the test
+      placeholder: https://github.com/octocat
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      options:
+        - Chrome
+        - Safari
+        - Firefox
+        - Edge
+        - Other
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment details
+      description: OS, browser version, device
+      placeholder: macOS 15, Chrome 134, MacBook Pro M2
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or console logs
+      description: Paste screenshots or relevant logs
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmations
+      options:
+        - label: I searched existing issues and did not find a duplicate
+          required: true
+        - label: I can reproduce this issue consistently
+          required: false

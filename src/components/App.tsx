@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { parseUsername, scanUser, type ScanProgress } from '../lib/github';
 import type { ScanResult } from '../lib/types';
 import MarkdownPreview from './MarkdownPreview';
@@ -7,12 +7,42 @@ import SearchBar from './SearchBar';
 import SkillsList from './SkillsList';
 import UserCard from './UserCard';
 
+function getInitialUsernameFromLocation(): string {
+  if (typeof window === 'undefined') return '';
+
+  const params = new URLSearchParams(window.location.search);
+  const fromQuery = params.get('u')?.trim();
+  if (fromQuery) return fromQuery;
+
+  const base = '/hiring-github-readme';
+  const path = window.location.pathname;
+  const relative = path.startsWith(base) ? path.slice(base.length) : path;
+  return relative.split('/').filter(Boolean)[0] ?? '';
+}
+
+function setCanonicalProfilePath(username: string): void {
+  if (typeof window === 'undefined') return;
+
+  const clean = encodeURIComponent(username.trim());
+  if (!clean) return;
+
+  const base = '/hiring-github-readme';
+  const targetPath = `${base}/${clean}`;
+  const currentPath = window.location.pathname;
+
+  if (currentPath === targetPath && !window.location.search) return;
+
+  window.history.replaceState({}, '', targetPath);
+}
+
 export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState<ScanProgress | null>(null);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [includeArchived, setIncludeArchived] = useState(true);
+  const [initialUsername] = useState(() => getInitialUsernameFromLocation());
+  const [hasAutoScanned, setHasAutoScanned] = useState(false);
 
   const handleSearch = useCallback(
     async (input: string) => {
@@ -29,6 +59,7 @@ export default function App() {
           includeArchived,
         });
         setResult(scanResult);
+        setCanonicalProfilePath(username);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Something went wrong');
       } finally {
@@ -37,6 +68,12 @@ export default function App() {
     },
     [includeArchived],
   );
+
+  useEffect(() => {
+    if (!initialUsername || hasAutoScanned) return;
+    setHasAutoScanned(true);
+    void handleSearch(initialUsername);
+  }, [handleSearch, hasAutoScanned, initialUsername]);
 
   return (
     <main className='min-h-screen flex flex-col'>
@@ -58,6 +95,7 @@ export default function App() {
           isLoading={isLoading}
           includeArchived={includeArchived}
           onIncludeArchivedChange={setIncludeArchived}
+          initialValue={initialUsername}
         />
       </section>
 

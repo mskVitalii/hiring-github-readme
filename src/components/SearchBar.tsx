@@ -5,6 +5,7 @@ interface Props {
   isLoading: boolean;
   includeArchived: boolean;
   onIncludeArchivedChange: (value: boolean) => void;
+  initialValue?: string;
 }
 
 export default function SearchBar({
@@ -12,8 +13,9 @@ export default function SearchBar({
   isLoading,
   includeArchived,
   onIncludeArchivedChange,
+  initialValue = '',
 }: Props) {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState(initialValue);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();

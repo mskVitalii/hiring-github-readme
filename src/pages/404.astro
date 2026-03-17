@@ -3,6 +3,26 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="404 — Page Not Found" description="This page doesn't exist.">
+  <script is:inline>
+    (() => {
+      const base = '/hiring-github-readme';
+      const { pathname, search, hash } = window.location;
+      const relative = pathname.startsWith(base) ? pathname.slice(base.length) : pathname;
+      const firstSegment = relative.split('/').filter(Boolean)[0] ?? '';
+
+      if (!firstSegment) return;
+
+      const params = new URLSearchParams(search);
+      if (!params.has('u')) {
+        params.set('u', firstSegment);
+      }
+
+      const query = params.toString();
+      const target = `${base}/${query ? `?${query}` : ''}${hash}`;
+      window.location.replace(target);
+    })();
+  </script>
+
   <main class="min-h-screen flex flex-col items-center justify-center px-4 text-center">
     <h1 class="text-6xl font-bold text-gh-accent mb-4">404</h1>
     <p class="text-xl text-gh-text mb-2">Page not found</p>

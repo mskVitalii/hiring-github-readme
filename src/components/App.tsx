@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { parseUsername, scanUser, type ScanProgress } from '../lib/github';
+import { getToken } from '../lib/token';
 import type { ScanResult } from '../lib/types';
 import MarkdownPreview from './MarkdownPreview';
 import ProgressBar from './ProgressBar';
@@ -41,6 +42,7 @@ export default function App() {
   const [result, setResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [includeArchived, setIncludeArchived] = useState(true);
+  const [token, setToken] = useState<string | null>(() => getToken());
   const [initialUsername] = useState(() => getInitialUsernameFromLocation());
   const [hasAutoScanned, setHasAutoScanned] = useState(false);
 
@@ -55,9 +57,14 @@ export default function App() {
       setProgress({ phase: 'user' });
 
       try {
-        const scanResult = await scanUser(username, setProgress, {
-          includeArchived,
-        });
+        const scanResult = await scanUser(
+          username,
+          token ?? undefined,
+          setProgress,
+          {
+            includeArchived,
+          },
+        );
         setResult(scanResult);
         setCanonicalProfilePath(username);
       } catch (err) {
@@ -66,7 +73,7 @@ export default function App() {
         setIsLoading(false);
       }
     },
-    [includeArchived],
+    [includeArchived, token],
   );
 
   useEffect(() => {
@@ -95,6 +102,7 @@ export default function App() {
           isLoading={isLoading}
           includeArchived={includeArchived}
           onIncludeArchivedChange={setIncludeArchived}
+          onTokenChange={setToken}
           initialValue={initialUsername}
         />
       </section>

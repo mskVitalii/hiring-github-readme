@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from 'react';
+import { TokenInput } from './TokenInput';
 
 interface Props {
   onSearch: (username: string) => void;
   isLoading: boolean;
   includeArchived: boolean;
   onIncludeArchivedChange: (value: boolean) => void;
+  onTokenChange?: (token: string | null) => void;
   initialValue?: string;
 }
 
@@ -13,6 +15,7 @@ export default function SearchBar({
   isLoading,
   includeArchived,
   onIncludeArchivedChange,
+  onTokenChange,
   initialValue = '',
 }: Props) {
   const [input, setInput] = useState(initialValue);
@@ -26,7 +29,7 @@ export default function SearchBar({
   };
 
   return (
-    <form onSubmit={handleSubmit} className='w-full max-w-xl mx-auto'>
+    <form onSubmit={handleSubmit} className='w-full max-w-2xl mx-auto'>
       <div className='flex gap-2'>
         <input
           id='github-profile-input'
@@ -39,10 +42,11 @@ export default function SearchBar({
           className='flex-1 px-4 py-3 rounded-lg bg-gh-bg-secondary border border-gh-border text-gh-text placeholder:text-gh-text-secondary focus:outline-none focus:border-gh-accent focus:ring-1 focus:ring-gh-accent transition-colors disabled:opacity-50'
           aria-label='GitHub username or URL'
         />
+        {onTokenChange && <TokenInput onTokenChange={onTokenChange} />}
         <button
           type='submit'
           disabled={isLoading || !input.trim()}
-          className='px-6 py-3 rounded-lg bg-gh-green text-gh-bg font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer'
+          className='px-6 py-3 rounded-lg bg-gh-green text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer'
         >
           {isLoading ? 'Scanning…' : 'Scan'}
         </button>

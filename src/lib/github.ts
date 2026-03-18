@@ -41,13 +41,17 @@ function setCache<T>(key: string, data: T): void {
   }
 }
 
-async function ghFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-    },
-  });
+async function ghFetch<T>(path: string, token?: string): Promise<T> {
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${API_BASE}${path}`, { headers });
 
   if (res.status === 403) {
     const remaining = res.headers.get('x-ratelimit-remaining');
@@ -87,34 +91,41 @@ export function parseUsername(input: string): string {
   return trimmed.replace(/^@/, '');
 }
 
-export async function fetchUser(username: string): Promise<GitHubUser> {
+export async function fetchUser(
+  username: string,
+  token?: string,
+): Promise<GitHubUser> {
   const cacheKey = `gh_user_${username}`;
   const cached = getCached<GitHubUser>(cacheKey);
   if (cached) return cached;
 
   const user = await ghFetch<GitHubUser>(
     `/users/${encodeURIComponent(username)}`,
+    token,
   );
   setCache(cacheKey, user);
   return user;
 }
 
-/** Fetch all non-fork repos (optionally include archived), paginated up to 300 */
+/** Fetch all non-fork repos (optionally include archived), paginated */
 export async function fetchRepos(
   username: string,
   includeArchived = true,
+  token?: string,
 ): Promise<GitHubRepo[]> {
-  const cacheKey = `gh_repos_${username}_${includeArchived ? 'with_archived' : 'no_archived'}`;
+  const cacheKey = `gh_repos_${username}_${includeArchived ? 'with_archived' : 'no_archived'}_${token ? 'with_token' : 'no_token'}`;
   const cached = getCached<GitHubRepo[]>(cacheKey);
   if (cached) return cached;
 
   const allRepos: GitHubRepo[] = [];
   const perPage = 100;
-  const maxPages = 3;
+  // With token: load all repos. Without token: load first page only (API limit ~100)
+  const maxPages = token ? Infinity : 1;
 
   for (let page = 1; page <= maxPages; page++) {
     const repos = await ghFetch<GitHubRepo[]>(
       `/users/${encodeURIComponent(username)}/repos?per_page=${perPage}&page=${page}&sort=updated&type=owner`,
+      token,
     );
     allRepos.push(...repos);
     if (repos.length < perPage) break;
@@ -159,6 +170,7 @@ function normalizeLang(lang: string): string | null {
 async function fetchRepoLanguages(
   owner: string,
   repo: string,
+  token?: string,
 ): Promise<RepoLanguages> {
   const cacheKey = `gh_langs_${owner}_${repo}`;
   const cached = getCached<RepoLanguages>(cacheKey);
@@ -166,6 +178,7 @@ async function fetchRepoLanguages(
 
   const langs = await ghFetch<RepoLanguages>(
     `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/languages`,
+    token,
   );
   setCache(cacheKey, langs);
   return langs;
@@ -175,6 +188,7 @@ async function fetchRepoLanguages(
 async function fetchRepoTreePaths(
   owner: string,
   repo: string,
+  token?: string,
 ): Promise<string[]> {
   const cacheKey = `gh_tree_${owner}_${repo}`;
   const cached = getCached<string[]>(cacheKey);
@@ -186,6 +200,7 @@ async function fetchRepoTreePaths(
       truncated?: boolean;
     }>(
       `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/trees/HEAD?recursive=1`,
+      token,
     );
     const paths =
       tree.tree
@@ -200,6 +215,7 @@ async function fetchRepoTreePaths(
     // Fallback for repos where recursive tree isn't available.
     const contents = await ghFetch<Array<{ name: string; type: string }>>(
       `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/`,
+      token,
     );
     const names = contents.map((f) => f.name.toLowerCase());
     setCache(cacheKey, names);
@@ -681,40 +697,63 @@ export type ScanProgress = {
   total?: number;
 };
 
-/** Main scan function */
+/**
+ * Scan user's GitHub profile
+ * - Without token: Fast mode (~1-3 requests) - analyzes primary language only
+ * - With token: Detailed mode (~100+ requests) - analyzes all languages & file structure
+ */
 export async function scanUser(
   username: string,
+  token?: string,
   onProgress?: (progress: ScanProgress) => void,
   options?: { includeArchived?: boolean },
 ): Promise<ScanResult> {
   const includeArchived = options?.includeArchived ?? true;
 
   onProgress?.({ phase: 'user' });
-  const user = await fetchUser(username);
+  const user = await fetchUser(username, token);
 
   onProgress?.({ phase: 'repos' });
-  const repos = await fetchRepos(username, includeArchived);
+  const repos = await fetchRepos(username, includeArchived, token);
 
-  // Fetch languages for top 30 repos (by stars, then size)
+  // If no token: fast mode (only primary language + topics)
+  if (!token) {
+    onProgress?.({ phase: 'analyzing' });
+    const skillMap = detectSkillsFromRepos(repos, new Map(), new Map());
+    const categories = categorizeSkills(skillMap);
+
+    onProgress?.({ phase: 'done' });
+    return {
+      user,
+      categories,
+      totalRepos: repos.length,
+      scannedRepos: repos.length,
+    };
+  }
+
+  // With token: detailed mode (languages + file tree for better detection)
   const sortedRepos = [...repos].sort(
     (a, b) => b.stargazers_count - a.stargazers_count || b.size - a.size,
   );
-  const reposToScan = sortedRepos.slice(0, 30);
   const languageMaps = new Map<string, RepoLanguages>();
 
-  for (let i = 0; i < reposToScan.length; i++) {
+  for (let i = 0; i < sortedRepos.length; i++) {
     onProgress?.({
       phase: 'languages',
       current: i + 1,
-      total: reposToScan.length,
+      total: sortedRepos.length,
     });
-    const repo = reposToScan[i];
-    const langs = await fetchRepoLanguages(username, repo.name);
+    const repo = sortedRepos[i];
+    // Skip if primary language is already known
+    if (repo.language) {
+      languageMaps.set(repo.name, {});
+      continue;
+    }
+    const langs = await fetchRepoLanguages(username, repo.name, token);
     languageMaps.set(repo.name, langs);
   }
 
-  // Fetch repository tree paths for likely infra/testing repos.
-  // This improves detection from file structure while staying within rate limits.
+  // Fetch file tree for infra/testing detection
   const infraLanguages = new Set([
     null,
     undefined,
@@ -723,20 +762,20 @@ export async function scanUser(
     'Shell',
     'Dockerfile',
   ]);
-  const infraRepos = reposToScan.filter((r) =>
+  const infraRepos = sortedRepos.filter((r) =>
     infraLanguages.has(r.language ?? null),
   );
 
   const testingLanguages = new Set(['JavaScript', 'TypeScript', 'Python']);
   const testingHint =
     /test|testing|storybook|cypress|playwright|jest|vitest|pytest|mocha/i;
-  const testingRepos = reposToScan
+  const testingRepos = sortedRepos
     .filter((r) => {
       if (testingLanguages.has(r.language ?? '')) return true;
       const text = `${r.name} ${r.description ?? ''} ${r.topics.join(' ')}`;
       return testingHint.test(text);
     })
-    .slice(0, 12);
+    .slice(0, 8);
 
   const treeRepoMap = new Map<string, GitHubRepo>();
   for (const repo of [...infraRepos, ...testingRepos]) {
@@ -749,11 +788,11 @@ export async function scanUser(
   for (let i = 0; i < treeRepos.length; i++) {
     onProgress?.({
       phase: 'languages',
-      current: reposToScan.length + i + 1,
-      total: reposToScan.length + treeRepos.length,
+      current: sortedRepos.length + i + 1,
+      total: sortedRepos.length + treeRepos.length,
     });
     const repo = treeRepos[i];
-    const files = await fetchRepoTreePaths(username, repo.name);
+    const files = await fetchRepoTreePaths(username, repo.name, token);
     rootFilesMap.set(repo.name, files);
   }
 
@@ -767,6 +806,6 @@ export async function scanUser(
     user,
     categories,
     totalRepos: repos.length,
-    scannedRepos: reposToScan.length,
+    scannedRepos: sortedRepos.length,
   };
 }

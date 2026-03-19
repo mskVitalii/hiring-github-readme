@@ -6,11 +6,14 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 
 const enableSentry = process.env.ENABLE_SENTRY === 'true';
+const isVercel = !!process.env.VERCEL;
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://mskvitalii.github.io',
-  base: '/hiring-github-readme',
+  site: isVercel
+    ? 'https://hiring-github-readme.vercel.app'
+    : 'https://mskvitalii.github.io',
+  base: isVercel ? '/' : '/hiring-github-readme',
   output: 'static',
 
   integrations: [

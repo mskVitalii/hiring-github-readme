@@ -3,9 +3,9 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="404 — Page Not Found" description="This page doesn't exist.">
-  <script is:inline>
+  <script is:inline define:vars={{ baseUrl: import.meta.env.BASE_URL }}>
     (() => {
-      const base = '/hiring-github-readme';
+      const base = baseUrl || '/';
       const { pathname, search, hash } = window.location;
       const relative = pathname.startsWith(base) ? pathname.slice(base.length) : pathname;
       const firstSegment = relative.split('/').filter(Boolean)[0] ?? '';
@@ -18,7 +18,7 @@ import Layout from '../layouts/Layout.astro';
       }
 
       const query = params.toString();
-      const target = `${base}/${query ? `?${query}` : ''}${hash}`;
+      const target = `${base}${query ? `?${query}` : ''}${hash}`.replace(/\/+/g, '/');
       window.location.replace(target);
     })();
   </script>

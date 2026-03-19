@@ -15,7 +15,7 @@ function getInitialUsernameFromLocation(): string {
   const fromQuery = params.get('u')?.trim();
   if (fromQuery) return fromQuery;
 
-  const base = '/hiring-github-readme';
+  const base = (window as any).__BASE_URL__ || '/';
   const path = window.location.pathname;
   const relative = path.startsWith(base) ? path.slice(base.length) : path;
   return relative.split('/').filter(Boolean)[0] ?? '';
@@ -27,8 +27,8 @@ function setCanonicalProfilePath(username: string): void {
   const clean = encodeURIComponent(username.trim());
   if (!clean) return;
 
-  const base = '/hiring-github-readme';
-  const targetPath = `${base}/${clean}`;
+  const base = (window as any).__BASE_URL__ || '/';
+  const targetPath = `${base}${clean}`.replace(/\/+/g, '/');
   const currentPath = window.location.pathname;
 
   if (currentPath === targetPath && !window.location.search) return;

@@ -1,0 +1,81 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const base = import.meta.env.BASE_URL || '/';
+---
+
+<Layout
+  title="Privacy Policy — Hiring GitHub Readme"
+  description="Privacy policy for Hiring GitHub Readme, including analytics and cookie consent details."
+>
+  <main class="min-h-screen px-4 py-10">
+    <article class="mx-auto max-w-3xl rounded-xl border border-gh-border/70 bg-gh-card/45 p-6 sm:p-8 space-y-5">
+      <header class="space-y-2">
+        <h1 class="text-3xl font-bold text-gh-text">Privacy Policy</h1>
+        <p class="text-gh-text-secondary text-sm">Last updated: March 19, 2026</p>
+      </header>
+
+      <p class="text-gh-text-secondary">
+        This website is a personal project operated by Vitalii Popov. I respect your privacy and collect only
+        the minimum data needed to understand product usage and improve the app.
+      </p>
+
+      <section class="space-y-2">
+        <h2 class="text-xl font-semibold text-gh-text">What Data Is Processed</h2>
+        <p class="text-gh-text-secondary">
+          When analytics consent is granted, Google Analytics 4 may process technical usage data such as page views,
+          approximate location (region/city), device/browser information, and anonymized interaction metrics.
+          I do not intentionally send personal identifiers such as names, emails, or private content to analytics.
+        </p>
+      </section>
+
+      <section class="space-y-2">
+        <h2 class="text-xl font-semibold text-gh-text">Purpose and Legal Basis</h2>
+        <p class="text-gh-text-secondary">
+          Analytics is used only to understand usage trends and improve this product. For visitors in the EU/EEA,
+          analytics cookies are enabled only after explicit consent.
+        </p>
+      </section>
+
+      <section class="space-y-2">
+        <h2 class="text-xl font-semibold text-gh-text">Cookies and Consent</h2>
+        <p class="text-gh-text-secondary">
+          By default, analytics storage is disabled. You can accept or decline analytics in the cookie banner.
+          You can also change your decision anytime using the "Manage Cookies" button in the footer.
+        </p>
+      </section>
+
+      <section class="space-y-2">
+        <h2 class="text-xl font-semibold text-gh-text">Third-Party Processors</h2>
+        <p class="text-gh-text-secondary">
+          This site uses Google Analytics (Google Ireland Limited / Google LLC) and Vercel hosting.
+          Data processing by third parties is subject to their own privacy terms.
+        </p>
+      </section>
+
+      <section class="space-y-2">
+        <h2 class="text-xl font-semibold text-gh-text">Data Retention</h2>
+        <p class="text-gh-text-secondary">
+          Retention settings are managed in the Google Analytics property. Data is retained only as long as
+          needed for aggregated analytics reporting.
+        </p>
+      </section>
+
+      <section class="space-y-2">
+        <h2 class="text-xl font-semibold text-gh-text">Contact</h2>
+        <p class="text-gh-text-secondary">
+          For privacy questions, contact: <a class="text-gh-accent underline underline-offset-2" href="https://www.linkedin.com/in/mskvitalii/" target="_blank" rel="noopener noreferrer">Vitalii Popov</a>
+        </p>
+      </section>
+
+      <footer class="pt-2">
+        <a
+          href={`${base}`}
+          class="inline-flex px-4 py-2 rounded-md bg-gh-accent text-gh-bg font-semibold hover:opacity-90 transition-opacity"
+        >
+          Back to Scanner
+        </a>
+      </footer>
+    </article>
+  </main>
+</Layout>

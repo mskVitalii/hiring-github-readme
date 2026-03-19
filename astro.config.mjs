@@ -12,12 +12,8 @@ const enableSentry = process.env.ENABLE_SENTRY === 'true';
 export default defineConfig({
   site: 'https://hiring-github-readme.vercel.app',
   base: '/',
-  output: 'static',
-  adapter: vercel({
-    isr: {
-      expiration: 60 * 60, // кеш профилей на 1 час
-    },
-  }),
+  output: 'server',
+  adapter: vercel(),
 
   integrations: [
     react(),

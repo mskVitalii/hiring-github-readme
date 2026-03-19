@@ -1,9 +1,9 @@
-import { c as createComponent } from './astro-component_B53dHmGQ.mjs';
+import { c as createComponent } from './astro-component_CdZdZnnQ.mjs';
 import 'piccolore';
-import { r as renderTemplate, l as renderSlot, h as addAttribute, n as renderHead, o as defineScriptVars, u as unescapeHTML, p as renderComponent } from './entrypoint_BXPLeSWz.mjs';
+import { l as renderComponent, r as renderTemplate } from './entrypoint_CCSmnZP9.mjs';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import 'clsx';
+import { $ as $$Layout } from './Layout_PQHvlUGr.mjs';
 
 const CONSENT_KEY = "ga_consent";
 function hasGaConsent() {
@@ -1946,47 +1946,10 @@ function App() {
   ] });
 }
 
-var __freeze$1 = Object.freeze;
-var __defProp$1 = Object.defineProperty;
-var __template$1 = (cooked, raw) => __freeze$1(__defProp$1(cooked, "raw", { value: __freeze$1(raw || cooked.slice()) }));
-var _a$1, _b, _c;
-const $$Layout = createComponent(($$result, $$props, $$slots) => {
-  const Astro2 = $$result.createAstro($$props, $$slots);
-  Astro2.self = $$Layout;
-  const {
-    title = "Hiring GitHub Readme — Developer Skills Scanner",
-    description = "Scan any GitHub profile to extract developer skills and technologies. Perfect for HR and recruiters."
-  } = Astro2.props;
-  const base = "/";
-  const canonicalURL = new URL(Astro2.url.pathname, Astro2.site);
-  const ogImage = new URL(`${base}og-image.png`, Astro2.site);
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    name: "Hiring GitHub Readme",
-    description,
-    url: canonicalURL.toString(),
-    applicationCategory: "DeveloperApplication",
-    operatingSystem: "Any",
-    author: {
-      "@type": "Person",
-      name: "Vitalii Popov",
-      url: "https://www.linkedin.com/in/mskvitalii/"
-    },
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD"
-    }
-  };
-  return renderTemplate(_c || (_c = __template$1(['<html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description"', '><meta name="generator"', '><meta name="theme-color" content="#0d1117"><meta name="author" content="Vitalii Popov"><meta name="keywords" content="github, developer skills, hiring, recruiter, HR, tech stack, portfolio, resume"><!-- Open Graph --><meta property="og:type" content="website"><meta property="og:title"', '><meta property="og:description"', '><meta property="og:url"', '><meta property="og:image"', '><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:site_name" content="Hiring GitHub Readme"><meta property="og:locale" content="en_US"><!-- Twitter --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title"', '><meta name="twitter:description"', '><meta name="twitter:image"', '><link rel="canonical"', '><link rel="icon" type="image/svg+xml"', '><link rel="icon" type="image/png" sizes="192x192"', '><link rel="icon" type="image/png" sizes="512x512"', '><link rel="apple-touch-icon"', "><title>", '</title><!-- Structured Data --><script type="application/ld+json">', "</script><!-- Google Analytics -->", "", "", '</head> <body class="min-h-screen bg-gh-bg text-gh-text"', "> ", " </body></html>"])), addAttribute(description, "content"), addAttribute(Astro2.generator, "content"), addAttribute(title, "content"), addAttribute(description, "content"), addAttribute(canonicalURL, "content"), addAttribute(ogImage, "content"), addAttribute(title, "content"), addAttribute(description, "content"), addAttribute(ogImage, "content"), addAttribute(canonicalURL, "href"), addAttribute(`${base}favicon.svg`, "href"), addAttribute(`${base}favicon-192.png`, "href"), addAttribute(`${base}favicon-512.png`, "href"), addAttribute(`${base}favicon-192.png`, "href"), title, unescapeHTML(JSON.stringify(jsonLd)), renderTemplate(_a$1 || (_a$1 = __template$1(["<script>(function(){", "\n        window.dataLayer = window.dataLayer || [];\n        window.gtag = window.gtag || function () {\n          window.dataLayer.push(arguments);\n        };\n\n        const consentKey = 'ga_consent';\n        const analyticsSrc = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;\n        let isConfigured = false;\n        let hasRequestedScript = false;\n\n        function gtag() {\n          window.gtag(...arguments);\n        }\n\n        function ensureAnalyticsScript() {\n          if (hasRequestedScript) return;\n          hasRequestedScript = true;\n\n          const script = document.createElement('script');\n          script.async = true;\n          script.src = analyticsSrc;\n          document.head.appendChild(script);\n\n          gtag('js', new Date());\n        }\n\n        function configureAnalytics() {\n          if (isConfigured) return;\n          gtag('config', gaId, { send_page_view: false });\n          isConfigured = true;\n        }\n\n        function updateConsent(value) {\n          gtag('consent', 'update', {\n            ad_storage: 'denied',\n            ad_user_data: 'denied',\n            ad_personalization: 'denied',\n            analytics_storage: value,\n          });\n        }\n\n        function sendInitialPageView() {\n          gtag('event', 'page_view', {\n            page_location: window.location.href,\n            page_path: window.location.pathname,\n            page_title: document.title,\n          });\n        }\n\n        function setAnalyticsConsent(granted) {\n          const value = granted ? 'granted' : 'denied';\n          localStorage.setItem(consentKey, value);\n\n          if (granted) {\n            ensureAnalyticsScript();\n            configureAnalytics();\n          }\n\n          updateConsent(value);\n\n          if (granted) {\n            sendInitialPageView();\n          }\n        }\n\n        window.setAnalyticsConsent = setAnalyticsConsent;\n\n        gtag('consent', 'default', {\n          ad_storage: 'denied',\n          ad_user_data: 'denied',\n          ad_personalization: 'denied',\n          analytics_storage: 'denied',\n        });\n\n        if (localStorage.getItem(consentKey) === 'granted') {\n          ensureAnalyticsScript();\n          configureAnalytics();\n          updateConsent('granted');\n          sendInitialPageView();\n        }\n      })();</script>"], ["<script>(function(){", "\n        window.dataLayer = window.dataLayer || [];\n        window.gtag = window.gtag || function () {\n          window.dataLayer.push(arguments);\n        };\n\n        const consentKey = 'ga_consent';\n        const analyticsSrc = \\`https://www.googletagmanager.com/gtag/js?id=\\${gaId}\\`;\n        let isConfigured = false;\n        let hasRequestedScript = false;\n\n        function gtag() {\n          window.gtag(...arguments);\n        }\n\n        function ensureAnalyticsScript() {\n          if (hasRequestedScript) return;\n          hasRequestedScript = true;\n\n          const script = document.createElement('script');\n          script.async = true;\n          script.src = analyticsSrc;\n          document.head.appendChild(script);\n\n          gtag('js', new Date());\n        }\n\n        function configureAnalytics() {\n          if (isConfigured) return;\n          gtag('config', gaId, { send_page_view: false });\n          isConfigured = true;\n        }\n\n        function updateConsent(value) {\n          gtag('consent', 'update', {\n            ad_storage: 'denied',\n            ad_user_data: 'denied',\n            ad_personalization: 'denied',\n            analytics_storage: value,\n          });\n        }\n\n        function sendInitialPageView() {\n          gtag('event', 'page_view', {\n            page_location: window.location.href,\n            page_path: window.location.pathname,\n            page_title: document.title,\n          });\n        }\n\n        function setAnalyticsConsent(granted) {\n          const value = granted ? 'granted' : 'denied';\n          localStorage.setItem(consentKey, value);\n\n          if (granted) {\n            ensureAnalyticsScript();\n            configureAnalytics();\n          }\n\n          updateConsent(value);\n\n          if (granted) {\n            sendInitialPageView();\n          }\n        }\n\n        window.setAnalyticsConsent = setAnalyticsConsent;\n\n        gtag('consent', 'default', {\n          ad_storage: 'denied',\n          ad_user_data: 'denied',\n          ad_personalization: 'denied',\n          analytics_storage: 'denied',\n        });\n\n        if (localStorage.getItem(consentKey) === 'granted') {\n          ensureAnalyticsScript();\n          configureAnalytics();\n          updateConsent('granted');\n          sendInitialPageView();\n        }\n      })();</script>"])), defineScriptVars({ gaId: "G-LVTVDKXWGJ" })), renderTemplate(_b || (_b = __template$1(["<script>(function(){", "\n        window.va = window.va || function () {\n          window.vaq = window.vaq || [];\n          window.vaq.push(arguments);\n        };\n\n        window.si = window.si || function () {\n          window.siq = window.siq || [];\n          window.siq.push(arguments);\n        };\n\n        function normalizePath(path) {\n          return path.replace(/\\/+/g, '/');\n        }\n\n        function injectScript(src, dataset) {\n          if (document.head.querySelector(`script[src=\"${src}\"]`)) return;\n\n          const script = document.createElement('script');\n          script.src = src;\n          script.defer = true;\n\n          Object.entries(dataset).forEach(([key, value]) => {\n            script.dataset[key] = value;\n          });\n\n          document.head.appendChild(script);\n        }\n\n        function loadVercelInsights() {\n          const basePath = normalizePath(base || '/');\n          const analyticsScript = normalizePath(`${basePath}_vercel/insights/script.js`);\n          const speedInsightsScript = normalizePath(`${basePath}_vercel/speed-insights/script.js`);\n          const currentPath = window.location.pathname;\n\n          injectScript(analyticsScript, {\n            sdkn: '@vercel/analytics/custom',\n            sdkv: '2.0.1',\n          });\n\n          injectScript(speedInsightsScript, {\n            sdkn: '@vercel/speed-insights/custom',\n            sdkv: '2.0.0',\n          });\n\n          window.va('pageview', {\n            route: currentPath,\n            path: currentPath,\n          });\n        }\n\n        if ('requestIdleCallback' in window) {\n          window.requestIdleCallback(loadVercelInsights, { timeout: 2500 });\n        } else {\n          window.setTimeout(loadVercelInsights, 1500);\n        }\n      })();</script>"], ["<script>(function(){", "\n        window.va = window.va || function () {\n          window.vaq = window.vaq || [];\n          window.vaq.push(arguments);\n        };\n\n        window.si = window.si || function () {\n          window.siq = window.siq || [];\n          window.siq.push(arguments);\n        };\n\n        function normalizePath(path) {\n          return path.replace(/\\\\/+/g, '/');\n        }\n\n        function injectScript(src, dataset) {\n          if (document.head.querySelector(\\`script[src=\"\\${src}\"]\\`)) return;\n\n          const script = document.createElement('script');\n          script.src = src;\n          script.defer = true;\n\n          Object.entries(dataset).forEach(([key, value]) => {\n            script.dataset[key] = value;\n          });\n\n          document.head.appendChild(script);\n        }\n\n        function loadVercelInsights() {\n          const basePath = normalizePath(base || '/');\n          const analyticsScript = normalizePath(\\`\\${basePath}_vercel/insights/script.js\\`);\n          const speedInsightsScript = normalizePath(\\`\\${basePath}_vercel/speed-insights/script.js\\`);\n          const currentPath = window.location.pathname;\n\n          injectScript(analyticsScript, {\n            sdkn: '@vercel/analytics/custom',\n            sdkv: '2.0.1',\n          });\n\n          injectScript(speedInsightsScript, {\n            sdkn: '@vercel/speed-insights/custom',\n            sdkv: '2.0.0',\n          });\n\n          window.va('pageview', {\n            route: currentPath,\n            path: currentPath,\n          });\n        }\n\n        if ('requestIdleCallback' in window) {\n          window.requestIdleCallback(loadVercelInsights, { timeout: 2500 });\n        } else {\n          window.setTimeout(loadVercelInsights, 1500);\n        }\n      })();</script>"])), defineScriptVars({ base })), renderHead(), addAttribute(base, "data-base-url"), renderSlot($$result, $$slots["default"]));
-}, "/Users/mskkote/Projects/hiring-github-readme/src/layouts/Layout.astro", void 0);
-
 var __freeze = Object.freeze;
 var __defProp = Object.defineProperty;
 var __template = (cooked, raw) => __freeze(__defProp(cooked, "raw", { value: __freeze(cooked.slice()) }));
 var _a;
-const prerender = false;
 const $$username = createComponent(async ($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$props, $$slots);
   Astro2.self = $$username;
@@ -2024,7 +1987,6 @@ const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   default: $$username,
   file: $$file,
-  prerender,
   url: $$url
 }, Symbol.toStringTag, { value: 'Module' }));
 

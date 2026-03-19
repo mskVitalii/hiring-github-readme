@@ -79,17 +79,23 @@ function updateAnalyticsConsent(granted: boolean): AnalyticsConsent {
 }
 
 export default function App() {
+  const [isHydrated, setIsHydrated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState<ScanProgress | null>(null);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [includeArchived, setIncludeArchived] = useState(true);
-  const [token, setToken] = useState<string | null>(() => getToken());
-  const [initialUsername] = useState(() => getInitialUsernameFromLocation());
+  const [token, setToken] = useState<string | null>(null);
+  const [initialUsername, setInitialUsername] = useState('');
   const [hasAutoScanned, setHasAutoScanned] = useState(false);
-  const [consent, setConsent] = useState<AnalyticsConsent>(() =>
-    getInitialConsent(),
-  );
+  const [consent, setConsent] = useState<AnalyticsConsent>(null);
+
+  useEffect(() => {
+    setIsHydrated(true);
+    setToken(getToken());
+    setInitialUsername(getInitialUsernameFromLocation());
+    setConsent(getInitialConsent());
+  }, []);
 
   const handleSearch = useCallback(
     async (input: string) => {
@@ -122,10 +128,10 @@ export default function App() {
   );
 
   useEffect(() => {
-    if (!initialUsername || hasAutoScanned) return;
+    if (!isHydrated || !initialUsername || hasAutoScanned) return;
     setHasAutoScanned(true);
     void handleSearch(initialUsername);
-  }, [handleSearch, hasAutoScanned, initialUsername]);
+  }, [handleSearch, hasAutoScanned, initialUsername, isHydrated]);
 
   return (
     <main className='min-h-screen flex flex-col'>
@@ -145,6 +151,7 @@ export default function App() {
         <SearchBar
           onSearch={handleSearch}
           isLoading={isLoading}
+          hasToken={Boolean(token)}
           includeArchived={includeArchived}
           onIncludeArchivedChange={setIncludeArchived}
           onTokenChange={setToken}
@@ -206,7 +213,7 @@ export default function App() {
         </p>
       </footer>
 
-      {consent === null && (
+      {isHydrated && consent === null && (
         <aside className='fixed inset-x-0 bottom-0 z-50 border-t border-gh-border/70 bg-gh-card/95 backdrop-blur px-4 py-3'>
           <div className='mx-auto max-w-5xl flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
             <p className='text-sm text-gh-text-secondary'>

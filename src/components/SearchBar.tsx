@@ -1,9 +1,11 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { logScanClick } from '../lib/logger';
 import { TokenInput } from './TokenInput';
 
 interface Props {
   onSearch: (username: string) => void;
   isLoading: boolean;
+  hasToken: boolean;
   includeArchived: boolean;
   onIncludeArchivedChange: (value: boolean) => void;
   onTokenChange?: (token: string | null) => void;
@@ -13,12 +15,17 @@ interface Props {
 export default function SearchBar({
   onSearch,
   isLoading,
+  hasToken,
   includeArchived,
   onIncludeArchivedChange,
   onTokenChange,
   initialValue = '',
 }: Props) {
   const [input, setInput] = useState(initialValue);
+
+  useEffect(() => {
+    setInput(initialValue);
+  }, [initialValue]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -46,6 +53,7 @@ export default function SearchBar({
         <button
           type='submit'
           disabled={isLoading || !input.trim()}
+          onClick={() => logScanClick(input.trim(), hasToken)}
           className='px-6 py-3 rounded-lg bg-gh-green text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer'
         >
           {isLoading ? 'Scanning…' : 'Scan'}

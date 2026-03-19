@@ -45,6 +45,20 @@ Contributions are welcome.
 3. Commit with clear message
 4. Open a Pull Request
 
+## Environment Variables
+
+- `PUBLIC_GA_ID` - Google Analytics 4 Measurement ID (optional, format: `G-XXXXXXXXXX`)
+- `PUBLIC_SENTRY_DSN` - browser Sentry DSN (optional)
+- `ENABLE_SENTRY` - enables `@sentry/astro` integration at build time (`true`/`false`)
+- `SENTRY_AUTH_TOKEN` - token for source map upload during build (optional)
+
+## Analytics Behavior
+
+- Google Analytics is loaded only when `PUBLIC_GA_ID` is provided.
+- Analytics storage is denied by default until user consent is provided.
+- A consent banner is shown on first visit with `Accept` and `Decline` actions.
+- In-app profile navigation sends manual `page_view` events to keep GA data accurate in SPA-like flows.
+
 ## Repository Profile Checklist
 
 To make the repository look complete for other developers, fill these GitHub fields:

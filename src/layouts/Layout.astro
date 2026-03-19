@@ -95,8 +95,50 @@ const jsonLd = {
         <script define:vars={{ gaId: import.meta.env.PUBLIC_GA_ID }}>
           window.dataLayer = window.dataLayer || [];
           function gtag() { dataLayer.push(arguments); }
+          const consentKey = 'ga_consent';
+          let isConfigured = false;
+
+          function configureAnalytics() {
+            if (isConfigured) return;
+            gtag('config', gaId, { send_page_view: false });
+            isConfigured = true;
+          }
+
+          function setAnalyticsConsent(granted) {
+            const value = granted ? 'granted' : 'denied';
+            localStorage.setItem(consentKey, value);
+
+            gtag('consent', 'update', {
+              ad_storage: 'denied',
+              ad_user_data: 'denied',
+              ad_personalization: 'denied',
+              analytics_storage: value,
+            });
+
+            if (granted) {
+              configureAnalytics();
+              gtag('event', 'page_view', {
+                page_location: window.location.href,
+                page_path: window.location.pathname,
+                page_title: document.title,
+              });
+            }
+          }
+
+          window.setAnalyticsConsent = setAnalyticsConsent;
+
           gtag('js', new Date());
-          gtag('config', gaId);
+          gtag('consent', 'default', {
+            ad_storage: 'denied',
+            ad_user_data: 'denied',
+            ad_personalization: 'denied',
+            analytics_storage: 'denied',
+          });
+
+          const storedConsent = localStorage.getItem(consentKey);
+          if (storedConsent === 'granted') {
+            setAnalyticsConsent(true);
+          }
         </script>
       </>
     )}

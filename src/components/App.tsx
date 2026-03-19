@@ -8,6 +8,16 @@ import SearchBar from './SearchBar';
 import SkillsList from './SkillsList';
 import UserCard from './UserCard';
 
+type AnalyticsConsent = 'granted' | 'denied' | null;
+
+declare global {
+  interface Window {
+    __BASE_URL__?: string;
+    gtag?: (...args: any[]) => void;
+    setAnalyticsConsent?: (granted: boolean) => void;
+  }
+}
+
 function getInitialUsernameFromLocation(): string {
   if (typeof window === 'undefined') return '';
 
@@ -15,10 +25,22 @@ function getInitialUsernameFromLocation(): string {
   const fromQuery = params.get('u')?.trim();
   if (fromQuery) return fromQuery;
 
-  const base = (window as any).__BASE_URL__ || '/';
+  const base = window.__BASE_URL__ || '/';
   const path = window.location.pathname;
   const relative = path.startsWith(base) ? path.slice(base.length) : path;
   return relative.split('/').filter(Boolean)[0] ?? '';
+}
+
+function sendGaPageView(path: string): void {
+  if (typeof window === 'undefined') return;
+  if (typeof window.gtag !== 'function') return;
+  if (window.localStorage.getItem('ga_consent') !== 'granted') return;
+
+  window.gtag('event', 'page_view', {
+    page_location: window.location.href,
+    page_path: path,
+    page_title: document.title,
+  });
 }
 
 function setCanonicalProfilePath(username: string): void {
@@ -27,13 +49,33 @@ function setCanonicalProfilePath(username: string): void {
   const clean = encodeURIComponent(username.trim());
   if (!clean) return;
 
-  const base = (window as any).__BASE_URL__ || '/';
+  const base = window.__BASE_URL__ || '/';
   const targetPath = `${base}${clean}`.replace(/\/+/g, '/');
   const currentPath = window.location.pathname;
 
   if (currentPath === targetPath && !window.location.search) return;
 
   window.history.replaceState({}, '', targetPath);
+  sendGaPageView(targetPath);
+}
+
+function getInitialConsent(): AnalyticsConsent {
+  if (typeof window === 'undefined') return null;
+  const value = window.localStorage.getItem('ga_consent');
+  return value === 'granted' || value === 'denied' ? value : null;
+}
+
+function updateAnalyticsConsent(granted: boolean): AnalyticsConsent {
+  if (
+    typeof window !== 'undefined' &&
+    typeof window.setAnalyticsConsent === 'function'
+  ) {
+    window.setAnalyticsConsent(granted);
+  } else if (typeof window !== 'undefined') {
+    window.localStorage.setItem('ga_consent', granted ? 'granted' : 'denied');
+  }
+
+  return granted ? 'granted' : 'denied';
 }
 
 export default function App() {
@@ -45,6 +87,9 @@ export default function App() {
   const [token, setToken] = useState<string | null>(() => getToken());
   const [initialUsername] = useState(() => getInitialUsernameFromLocation());
   const [hasAutoScanned, setHasAutoScanned] = useState(false);
+  const [consent, setConsent] = useState<AnalyticsConsent>(() =>
+    getInitialConsent(),
+  );
 
   const handleSearch = useCallback(
     async (input: string) => {
@@ -160,6 +205,33 @@ export default function App() {
           . Rate limit: 60 requests/hour without token.
         </p>
       </footer>
+
+      {consent === null && (
+        <aside className='fixed inset-x-0 bottom-0 z-50 border-t border-gh-border/70 bg-gh-card/95 backdrop-blur px-4 py-3'>
+          <div className='mx-auto max-w-5xl flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+            <p className='text-sm text-gh-text-secondary'>
+              I use Google Analytics to understand product usage and improve the
+              scanner.
+            </p>
+            <div className='flex items-center gap-2'>
+              <button
+                type='button'
+                onClick={() => setConsent(updateAnalyticsConsent(false))}
+                className='px-3 py-2 rounded-md border border-gh-border text-gh-text-secondary hover:text-gh-text'
+              >
+                Decline
+              </button>
+              <button
+                type='button'
+                onClick={() => setConsent(updateAnalyticsConsent(true))}
+                className='px-3 py-2 rounded-md bg-gh-accent text-gh-bg font-semibold hover:opacity-90'
+              >
+                Accept
+              </button>
+            </div>
+          </div>
+        </aside>
+      )}
     </main>
   );
 }

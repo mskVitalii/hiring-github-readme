@@ -41,6 +41,37 @@ function setCache<T>(key: string, data: T): void {
   }
 }
 
+/** Execute async tasks with max concurrency limit */
+async function pLimit<T>(
+  tasks: (() => Promise<T>)[],
+  limit: number = 5,
+): Promise<T[]> {
+  const results: T[] = new Array(tasks.length);
+  const executing: Promise<void>[] = [];
+
+  for (let i = 0; i < tasks.length; i++) {
+    const task = tasks[i];
+    const promise = Promise.resolve()
+      .then(() => task())
+      .then((result) => {
+        results[i] = result;
+      });
+
+    executing.push(promise);
+
+    if (executing.length >= limit) {
+      await Promise.race(executing);
+      executing.splice(
+        executing.findIndex((p) => p === promise),
+        1,
+      );
+    }
+  }
+
+  await Promise.all(executing);
+  return results;
+}
+
 async function ghFetch<T>(path: string, token?: string): Promise<T> {
   const headers: Record<string, string> = {
     Accept: 'application/vnd.github+json',
@@ -733,25 +764,35 @@ export async function scanUser(
 
   // With token: detailed mode (languages + file tree for better detection)
   const sortedRepos = [...repos].sort(
-    (a, b) => b.stargazers_count - a.stargazers_count || b.size - a.size,
+    (a, b) => b.stargazers_count - a.stargazers_count || b.size - b.size,
   );
   const languageMaps = new Map<string, RepoLanguages>();
 
-  for (let i = 0; i < sortedRepos.length; i++) {
+  // Fetch languages in parallel (max 5 concurrent)
+  onProgress?.({
+    phase: 'languages',
+    current: 0,
+    total: sortedRepos.length,
+  });
+
+  const languageTasks = sortedRepos.map((repo, idx) => async () => {
     onProgress?.({
       phase: 'languages',
-      current: i + 1,
+      current: idx + 1,
       total: sortedRepos.length,
     });
-    const repo = sortedRepos[i];
-    // Skip if primary language is already known
+
     if (repo.language) {
-      languageMaps.set(repo.name, {});
-      continue;
+      return { repo: repo.name, langs: {} as RepoLanguages };
     }
     const langs = await fetchRepoLanguages(username, repo.name, token);
-    languageMaps.set(repo.name, langs);
-  }
+    return { repo: repo.name, langs };
+  });
+
+  const languageResults = await pLimit(languageTasks, 5);
+  languageResults.forEach(({ repo, langs }) => {
+    languageMaps.set(repo, langs);
+  });
 
   // Fetch file tree for infra/testing detection
   const infraLanguages = new Set([
@@ -785,16 +826,21 @@ export async function scanUser(
 
   const rootFilesMap = new Map<string, string[]>();
 
-  for (let i = 0; i < treeRepos.length; i++) {
+  // Fetch tree paths in parallel (max 5 concurrent)
+  const treeTasks = treeRepos.map((repo, idx) => async () => {
     onProgress?.({
       phase: 'languages',
-      current: sortedRepos.length + i + 1,
+      current: sortedRepos.length + idx + 1,
       total: sortedRepos.length + treeRepos.length,
     });
-    const repo = treeRepos[i];
     const files = await fetchRepoTreePaths(username, repo.name, token);
-    rootFilesMap.set(repo.name, files);
-  }
+    return { repo: repo.name, files };
+  });
+
+  const treeResults = await pLimit(treeTasks, 5);
+  treeResults.forEach(({ repo, files }) => {
+    rootFilesMap.set(repo, files);
+  });
 
   onProgress?.({ phase: 'analyzing' });
   const skillMap = detectSkillsFromRepos(repos, languageMaps, rootFilesMap);

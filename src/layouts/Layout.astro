@@ -1,5 +1,7 @@
 ---
 import '../styles/global.css';
+import Analytics from '@vercel/analytics/astro';
+import SpeedInsights from '@vercel/speed-insights/astro';
 
 interface Props {
   title?: string;
@@ -11,8 +13,9 @@ const {
   description = 'Scan any GitHub profile to extract developer skills and technologies. Perfect for HR and recruiters.',
 } = Astro.props;
 
+const base = import.meta.env.BASE_URL || '/';
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
-const ogImage = new URL('/hiring-github-readme/og-image.png', Astro.site);
+const ogImage = new URL(`${base}og-image.png`, Astro.site);
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -72,10 +75,10 @@ const jsonLd = {
     <meta name="twitter:image" content={ogImage} />
 
     <link rel="canonical" href={canonicalURL} />
-    <link rel="icon" type="image/svg+xml" href="/hiring-github-readme/favicon.svg" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/hiring-github-readme/favicon-192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/hiring-github-readme/favicon-512.png" />
-    <link rel="apple-touch-icon" href="/hiring-github-readme/favicon-192.png" />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <link rel="icon" type="image/png" sizes="192x192" href={`${base}favicon-192.png`} />
+    <link rel="icon" type="image/png" sizes="512x512" href={`${base}favicon-512.png`} />
+    <link rel="apple-touch-icon" href={`${base}favicon-192.png`} />
 
     <title>{title}</title>
 
@@ -98,7 +101,9 @@ const jsonLd = {
       </>
     )}
   </head>
-  <body class="min-h-screen bg-gh-bg text-gh-text">
+  <body class="min-h-screen bg-gh-bg text-gh-text" data-base-url={base}>
     <slot />
+    <Analytics />
+    <SpeedInsights />
   </body>
 </html>

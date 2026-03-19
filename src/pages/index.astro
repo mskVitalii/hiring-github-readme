@@ -5,7 +5,8 @@ import App from '../components/App';
 
 <Layout>
   <script is:inline>
-    window.__BASE_URL__ = import.meta.env.BASE_URL;
+    const bodyElement = document.querySelector('body');
+    window.__BASE_URL__ = bodyElement?.getAttribute('data-base-url') || '/';
   </script>
   <App client:idle />
 </Layout>

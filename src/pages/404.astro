@@ -1,11 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+const base = import.meta.env.BASE_URL || '/';
 ---
 
 <Layout title="404 — Page Not Found" description="This page doesn't exist.">
-  <script is:inline define:vars={{ baseUrl: import.meta.env.BASE_URL }}>
+  <script is:inline>
     (() => {
-      const base = baseUrl || '/';
+      const bodyElement = document.querySelector('body');
+      const base = bodyElement?.getAttribute('data-base-url') || '/';
       const { pathname, search, hash } = window.location;
       const relative = pathname.startsWith(base) ? pathname.slice(base.length) : pathname;
       const firstSegment = relative.split('/').filter(Boolean)[0] ?? '';
@@ -28,7 +31,7 @@ import Layout from '../layouts/Layout.astro';
     <p class="text-xl text-gh-text mb-2">Page not found</p>
     <p class="text-gh-text-secondary mb-8">The page you're looking for doesn't exist or has been moved.</p>
     <a
-      href="/hiring-github-readme/"
+      href={`${base}?`}
       class="px-6 py-3 rounded-lg bg-gh-green text-gh-bg font-semibold hover:opacity-90 transition-opacity"
     >
       Go to Scanner

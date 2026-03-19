@@ -1,9 +1,9 @@
 {
   "lighthouseVersion": "12.3.0",
-  "requestedUrl": "http://127.0.0.1:4321/hiring-github-readme/",
-  "mainDocumentUrl": "http://127.0.0.1:4321/hiring-github-readme/",
-  "finalDisplayedUrl": "http://127.0.0.1:4321/hiring-github-readme/",
-  "finalUrl": "http://127.0.0.1:4321/hiring-github-readme/",
+  "requestedUrl": "http://127.0.0.1:4321/",
+  "mainDocumentUrl": "http://127.0.0.1:4321/",
+  "finalDisplayedUrl": "http://127.0.0.1:4321/",
+  "finalUrl": "http://127.0.0.1:4321/",
   "fetchTime": "2026-03-16T18:50:54.374Z",
   "gatherMode": "navigation",
   "runWarnings": [],
@@ -259,7 +259,7 @@
         ],
         "items": [
           {
-            "url": "http://127.0.0.1:4321/hiring-github-readme/",
+            "url": "http://127.0.0.1:4321/",
             "responseTime": 4.851
           }
         ],
@@ -302,7 +302,7 @@
         "chains": {
           "9A88E7DE2A7D795C3652E535CC2C6DBB": {
             "request": {
-              "url": "http://127.0.0.1:4321/hiring-github-readme/",
+              "url": "http://127.0.0.1:4321/",
               "startTime": 579284.627784,
               "endTime": 579284.633709,
               "responseReceivedTime": 579284.633063,
@@ -311,7 +311,7 @@
             "children": {
               "27940.3": {
                 "request": {
-                  "url": "http://127.0.0.1:4321/hiring-github-readme/_astro/Layout.DZ9LJYth.css",
+                  "url": "http://127.0.0.1:4321/_astro/Layout.DZ9LJYth.css",
                   "startTime": 579284.646549,
                   "endTime": 579284.649874,
                   "responseReceivedTime": 579284.6493619999,
@@ -320,7 +320,7 @@
               },
               "27940.6": {
                 "request": {
-                  "url": "http://127.0.0.1:4321/hiring-github-readme/_astro/App.BDSqRIH9.js",
+                  "url": "http://127.0.0.1:4321/_astro/App.BDSqRIH9.js",
                   "startTime": 579284.679394,
                   "endTime": 579284.682324,
                   "responseReceivedTime": 579284.6818599999,
@@ -329,7 +329,7 @@
                 "children": {
                   "27940.8": {
                     "request": {
-                      "url": "http://127.0.0.1:4321/hiring-github-readme/_astro/index.B02hbnpo.js",
+                      "url": "http://127.0.0.1:4321/_astro/index.B02hbnpo.js",
                       "startTime": 579284.683512,
                       "endTime": 579284.685441,
                       "responseReceivedTime": 579284.685292,
@@ -340,7 +340,7 @@
               },
               "27940.7": {
                 "request": {
-                  "url": "http://127.0.0.1:4321/hiring-github-readme/_astro/client.DIQWfPlE.js",
+                  "url": "http://127.0.0.1:4321/_astro/client.DIQWfPlE.js",
                   "startTime": 579284.679576,
                   "endTime": 579284.688706,
                   "responseReceivedTime": 579284.6836189999,
@@ -545,13 +545,13 @@
             "scriptParseCompile": 0
           },
           {
-            "url": "http://127.0.0.1:4321/hiring-github-readme/",
+            "url": "http://127.0.0.1:4321/",
             "total": 114.836,
             "scripting": 16.648,
             "scriptParseCompile": 2.42
           },
           {
-            "url": "http://127.0.0.1:4321/hiring-github-readme/_astro/client.DIQWfPlE.js",
+            "url": "http://127.0.0.1:4321/_astro/client.DIQWfPlE.js",
             "total": 57.127999999999986,
             "scripting": 47.259999999999984,
             "scriptParseCompile": 0.728
@@ -692,7 +692,7 @@
         ],
         "items": [
           {
-            "url": "http://127.0.0.1:4321/hiring-github-readme/",
+            "url": "http://127.0.0.1:4321/",
             "sessionTargetType": "page",
             "protocol": "http/1.1",
             "rendererStartTime": 0,
@@ -726,7 +726,7 @@
             "entity": "Google Tag Manager"
           },
           {
-            "url": "http://127.0.0.1:4321/hiring-github-readme/_astro/Layout.DZ9LJYth.css",
+            "url": "http://127.0.0.1:4321/_astro/Layout.DZ9LJYth.css",
             "sessionTargetType": "page",
             "protocol": "http/1.1",
             "rendererStartTime": 18.550999999046326,
@@ -743,7 +743,7 @@
             "entity": "127.0.0.1"
           },
           {
-            "url": "http://127.0.0.1:4321/hiring-github-readme/_astro/App.BDSqRIH9.js",
+            "url": "http://127.0.0.1:4321/_astro/App.BDSqRIH9.js",
             "sessionTargetType": "page",
             "protocol": "http/1.1",
             "rendererStartTime": 52.47200000286102,
@@ -760,7 +760,7 @@
             "entity": "127.0.0.1"
           },
           {
-            "url": "http://127.0.0.1:4321/hiring-github-readme/_astro/client.DIQWfPlE.js",
+            "url": "http://127.0.0.1:4321/_astro/client.DIQWfPlE.js",
             "sessionTargetType": "page",
             "protocol": "http/1.1",
             "rendererStartTime": 52.58399999141693,
@@ -777,7 +777,7 @@
             "entity": "127.0.0.1"
           },
           {
-            "url": "http://127.0.0.1:4321/hiring-github-readme/_astro/index.B02hbnpo.js",
+            "url": "http://127.0.0.1:4321/_astro/index.B02hbnpo.js",
             "sessionTargetType": "page",
             "protocol": "http/1.1",
             "rendererStartTime": 56.800999999046326,
@@ -811,7 +811,7 @@
             "entity": "Google Analytics"
           },
           {
-            "url": "http://127.0.0.1:4321/hiring-github-readme/favicon.svg",
+            "url": "http://127.0.0.1:4321/favicon.svg",
             "sessionTargetType": "page",
             "protocol": "http/1.1",
             "rendererStartTime": 241.20700001716614,
@@ -1505,7 +1505,7 @@
         "type": "treemap-data",
         "nodes": [
           {
-            "name": "http://127.0.0.1:4321/hiring-github-readme/",
+            "name": "http://127.0.0.1:4321/",
             "resourceBytes": 4030,
             "unusedBytes": 520,
             "children": [
@@ -1527,17 +1527,17 @@
             ]
           },
           {
-            "name": "http://127.0.0.1:4321/hiring-github-readme/_astro/App.BDSqRIH9.js",
+            "name": "http://127.0.0.1:4321/_astro/App.BDSqRIH9.js",
             "resourceBytes": 17690,
             "unusedBytes": 10040
           },
           {
-            "name": "http://127.0.0.1:4321/hiring-github-readme/_astro/index.B02hbnpo.js",
+            "name": "http://127.0.0.1:4321/_astro/index.B02hbnpo.js",
             "resourceBytes": 7614,
             "unusedBytes": 5088
           },
           {
-            "name": "http://127.0.0.1:4321/hiring-github-readme/_astro/client.DIQWfPlE.js",
+            "name": "http://127.0.0.1:4321/_astro/client.DIQWfPlE.js",
             "resourceBytes": 185761,
             "unusedBytes": 110417
           },
@@ -2190,27 +2190,27 @@
             "totalBytes": 155623
           },
           {
-            "url": "http://127.0.0.1:4321/hiring-github-readme/_astro/client.DIQWfPlE.js",
+            "url": "http://127.0.0.1:4321/_astro/client.DIQWfPlE.js",
             "totalBytes": 58687
           },
           {
-            "url": "http://127.0.0.1:4321/hiring-github-readme/_astro/App.BDSqRIH9.js",
+            "url": "http://127.0.0.1:4321/_astro/App.BDSqRIH9.js",
             "totalBytes": 7184
           },
           {
-            "url": "http://127.0.0.1:4321/hiring-github-readme/_astro/Layout.DZ9LJYth.css",
+            "url": "http://127.0.0.1:4321/_astro/Layout.DZ9LJYth.css",
             "totalBytes": 4243
           },
           {
-            "url": "http://127.0.0.1:4321/hiring-github-readme/",
+            "url": "http://127.0.0.1:4321/",
             "totalBytes": 3794
           },
           {
-            "url": "http://127.0.0.1:4321/hiring-github-readme/_astro/index.B02hbnpo.js",
+            "url": "http://127.0.0.1:4321/_astro/index.B02hbnpo.js",
             "totalBytes": 3287
           },
           {
-            "url": "http://127.0.0.1:4321/hiring-github-readme/favicon.svg",
+            "url": "http://127.0.0.1:4321/favicon.svg",
             "totalBytes": 571
           },
           {
@@ -2414,7 +2414,7 @@
             "wastedPercent": 39.40802423068027
           },
           {
-            "url": "http://127.0.0.1:4321/hiring-github-readme/_astro/client.DIQWfPlE.js",
+            "url": "http://127.0.0.1:4321/_astro/client.DIQWfPlE.js",
             "totalBytes": 58332,
             "wastedBytes": 34673,
             "wastedPercent": 59.44035615656678

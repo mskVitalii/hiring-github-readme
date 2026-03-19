@@ -75,7 +75,7 @@ function topicBadgeUrl(topic: string): string {
   return `https://img.shields.io/static/v1?${q.toString()}`;
 }
 
-/** Generate GitHub-flavored markdown for a user's skills */
+/** Generate GitHub-flavored markdown for profile skills */
 export function generateMarkdown(
   result: ScanResult,
   options: MarkdownOptions = {},
@@ -88,7 +88,7 @@ export function generateMarkdown(
   const lines: string[] = [];
 
   // Header
-  lines.push(`# ${user.name ?? user.login}'s Tech Stack`);
+  lines.push(`# Tech Stack`);
   lines.push('');
 
   // Category summary with grouped skill badges
@@ -169,7 +169,7 @@ export function generateMarkdown(
   lines.push('---');
   lines.push('');
   lines.push(
-    '*Generated with [Hiring GitHub Readme](https://mskvitalii.github.io/hiring-github-readme/)*',
+    '*Generated with [Hiring GitHub Readme](https://hiring-github-readme.vercel.app/)*',
   );
   lines.push('');
 

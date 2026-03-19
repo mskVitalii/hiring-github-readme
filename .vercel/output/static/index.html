@@ -1,0 +1,314 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="Scan any GitHub profile to extract developer skills and technologies. Perfect for HR and recruiters."><meta name="generator" content="Astro v6.0.4"><meta name="theme-color" content="#0d1117"><meta name="author" content="Vitalii Popov"><meta name="keywords" content="github, developer skills, hiring, recruiter, HR, tech stack, portfolio, resume"><!-- Open Graph --><meta property="og:type" content="website"><meta property="og:title" content="Hiring GitHub Readme — Developer Skills Scanner"><meta property="og:description" content="Scan any GitHub profile to extract developer skills and technologies. Perfect for HR and recruiters."><meta property="og:url" content="https://hiring-github-readme.vercel.app/"><meta property="og:image" content="https://hiring-github-readme.vercel.app/og-image.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:site_name" content="Hiring GitHub Readme"><meta property="og:locale" content="en_US"><!-- Twitter --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Hiring GitHub Readme — Developer Skills Scanner"><meta name="twitter:description" content="Scan any GitHub profile to extract developer skills and technologies. Perfect for HR and recruiters."><meta name="twitter:image" content="https://hiring-github-readme.vercel.app/og-image.png"><link rel="canonical" href="https://hiring-github-readme.vercel.app/"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png"><link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png"><link rel="apple-touch-icon" href="/favicon-192.png"><title>Hiring GitHub Readme — Developer Skills Scanner</title><!-- Structured Data --><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Hiring GitHub Readme","description":"Scan any GitHub profile to extract developer skills and technologies. Perfect for HR and recruiters.","url":"https://hiring-github-readme.vercel.app/","applicationCategory":"DeveloperApplication","operatingSystem":"Any","author":{"@type":"Person","name":"Vitalii Popov","url":"https://www.linkedin.com/in/mskvitalii/"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script><!-- Google Analytics --><script>(function(){const gaId = "G-LVTVDKXWGJ";
+
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = window.gtag || function () {
+          window.dataLayer.push(arguments);
+        };
+
+        const consentKey = 'ga_consent';
+        const analyticsSrc = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
+        let isConfigured = false;
+        let hasRequestedScript = false;
+
+        function gtag() {
+          window.gtag(...arguments);
+        }
+
+        function ensureAnalyticsScript() {
+          if (hasRequestedScript) return;
+          hasRequestedScript = true;
+
+          const script = document.createElement('script');
+          script.async = true;
+          script.src = analyticsSrc;
+          document.head.appendChild(script);
+
+          gtag('js', new Date());
+        }
+
+        function configureAnalytics() {
+          if (isConfigured) return;
+          gtag('config', gaId, { send_page_view: false });
+          isConfigured = true;
+        }
+
+        function updateConsent(value) {
+          gtag('consent', 'update', {
+            ad_storage: 'denied',
+            ad_user_data: 'denied',
+            ad_personalization: 'denied',
+            analytics_storage: value,
+          });
+        }
+
+        function sendInitialPageView() {
+          gtag('event', 'page_view', {
+            page_location: window.location.href,
+            page_path: window.location.pathname,
+            page_title: document.title,
+          });
+        }
+
+        function setAnalyticsConsent(granted) {
+          const value = granted ? 'granted' : 'denied';
+          localStorage.setItem(consentKey, value);
+
+          if (granted) {
+            ensureAnalyticsScript();
+            configureAnalytics();
+          }
+
+          updateConsent(value);
+
+          if (granted) {
+            sendInitialPageView();
+          }
+        }
+
+        window.setAnalyticsConsent = setAnalyticsConsent;
+
+        gtag('consent', 'default', {
+          ad_storage: 'denied',
+          ad_user_data: 'denied',
+          ad_personalization: 'denied',
+          analytics_storage: 'denied',
+        });
+
+        if (localStorage.getItem(consentKey) === 'granted') {
+          ensureAnalyticsScript();
+          configureAnalytics();
+          updateConsent('granted');
+          sendInitialPageView();
+        }
+      })();</script><script>(function(){const base = "/";
+
+        window.va = window.va || function () {
+          window.vaq = window.vaq || [];
+          window.vaq.push(arguments);
+        };
+
+        window.si = window.si || function () {
+          window.siq = window.siq || [];
+          window.siq.push(arguments);
+        };
+
+        function normalizePath(path) {
+          return path.replace(/\/+/g, '/');
+        }
+
+        function injectScript(src, dataset) {
+          if (document.head.querySelector(`script[src="${src}"]`)) return;
+
+          const script = document.createElement('script');
+          script.src = src;
+          script.defer = true;
+
+          Object.entries(dataset).forEach(([key, value]) => {
+            script.dataset[key] = value;
+          });
+
+          document.head.appendChild(script);
+        }
+
+        function loadVercelInsights() {
+          const basePath = normalizePath(base || '/');
+          const analyticsScript = normalizePath(`${basePath}_vercel/insights/script.js`);
+          const speedInsightsScript = normalizePath(`${basePath}_vercel/speed-insights/script.js`);
+          const currentPath = window.location.pathname;
+
+          injectScript(analyticsScript, {
+            sdkn: '@vercel/analytics/custom',
+            sdkv: '2.0.1',
+          });
+
+          injectScript(speedInsightsScript, {
+            sdkn: '@vercel/speed-insights/custom',
+            sdkv: '2.0.0',
+          });
+
+          window.va('pageview', {
+            route: currentPath,
+            path: currentPath,
+          });
+        }
+
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(loadVercelInsights, { timeout: 2500 });
+        } else {
+          window.setTimeout(loadVercelInsights, 1500);
+        }
+      })();</script><link rel="stylesheet" href="/_astro/Layout.m2maMuyg.css"></head> <body class="min-h-screen bg-gh-bg text-gh-text" data-base-url="/">  <script>
+    const bodyElement = document.querySelector('body');
+    window.__BASE_URL__ = bodyElement?.getAttribute('data-base-url') || '/';
+  </script> <style>astro-island,astro-slot,astro-static-slot{display:contents}</style><script>(()=>{var l=(n,t)=>{let i=async()=>{await(await n())()},e=typeof t.value=="object"?t.value:void 0,s={timeout:e==null?void 0:e.timeout};"requestIdleCallback"in window?window.requestIdleCallback(i,s):setTimeout(i,s.timeout||200)};(self.Astro||(self.Astro={})).idle=l;window.dispatchEvent(new Event("astro:idle"));})();</script><script>(()=>{var A=Object.defineProperty;var g=(i,o,a)=>o in i?A(i,o,{enumerable:!0,configurable:!0,writable:!0,value:a}):i[o]=a;var d=(i,o,a)=>g(i,typeof o!="symbol"?o+"":o,a);{let i={0:t=>m(t),1:t=>a(t),2:t=>new RegExp(t),3:t=>new Date(t),4:t=>new Map(a(t)),5:t=>new Set(a(t)),6:t=>BigInt(t),7:t=>new URL(t),8:t=>new Uint8Array(t),9:t=>new Uint16Array(t),10:t=>new Uint32Array(t),11:t=>Number.POSITIVE_INFINITY*t},o=t=>{let[l,e]=t;return l in i?i[l](e):void 0},a=t=>t.map(o),m=t=>typeof t!="object"||t===null?t:Object.fromEntries(Object.entries(t).map(([l,e])=>[l,o(e)]));class y extends HTMLElement{constructor(){super(...arguments);d(this,"Component");d(this,"hydrator");d(this,"hydrate",async()=>{var b;if(!this.hydrator||!this.isConnected)return;let e=(b=this.parentElement)==null?void 0:b.closest("astro-island[ssr]");if(e){e.addEventListener("astro:hydrate",this.hydrate,{once:!0});return}let c=this.querySelectorAll("astro-slot"),n={},h=this.querySelectorAll("template[data-astro-template]");for(let r of h){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("data-astro-template")||"default"]=r.innerHTML,r.remove())}for(let r of c){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("name")||"default"]=r.innerHTML)}let p;try{p=this.hasAttribute("props")?m(JSON.parse(this.getAttribute("props"))):{}}catch(r){let s=this.getAttribute("component-url")||"<unknown>",v=this.getAttribute("component-export");throw v&&(s+=` (export ${v})`),console.error(`[hydrate] Error parsing props for component ${s}`,this.getAttribute("props"),r),r}let u;await this.hydrator(this)(this.Component,p,n,{client:this.getAttribute("client")}),this.removeAttribute("ssr"),this.dispatchEvent(new CustomEvent("astro:hydrate"))});d(this,"unmount",()=>{this.isConnected||this.dispatchEvent(new CustomEvent("astro:unmount"))})}disconnectedCallback(){document.removeEventListener("astro:after-swap",this.unmount),document.addEventListener("astro:after-swap",this.unmount,{once:!0})}connectedCallback(){if(!this.hasAttribute("await-children")||document.readyState==="interactive"||document.readyState==="complete")this.childrenConnectedCallback();else{let e=()=>{document.removeEventListener("DOMContentLoaded",e),c.disconnect(),this.childrenConnectedCallback()},c=new MutationObserver(()=>{var n;((n=this.lastChild)==null?void 0:n.nodeType)===Node.COMMENT_NODE&&this.lastChild.nodeValue==="astro:end"&&(this.lastChild.remove(),e())});c.observe(this,{childList:!0}),document.addEventListener("DOMContentLoaded",e)}}async childrenConnectedCallback(){let e=this.getAttribute("before-hydration-url");e&&await import(e),this.start()}async start(){let e=JSON.parse(this.getAttribute("opts")),c=this.getAttribute("client");if(Astro[c]===void 0){window.addEventListener(`astro:${c}`,()=>this.start(),{once:!0});return}try{await Astro[c](async()=>{let n=this.getAttribute("renderer-url"),[h,{default:p}]=await Promise.all([import(this.getAttribute("component-url")),n?import(n):()=>()=>{}]),u=this.getAttribute("component-export")||"default";if(!u.includes("."))this.Component=h[u];else{this.Component=h;for(let f of u.split("."))this.Component=this.Component[f]}return this.hydrator=p,this.hydrate},e,this)}catch(n){console.error(`[astro-island] Error hydrating ${this.getAttribute("component-url")}`,n)}}attributeChangedCallback(){this.hydrate()}}d(y,"observedAttributes",["props"]),customElements.get("astro-island")||customElements.define("astro-island",y)}})();</script><astro-island uid="2bxfPu" prefix="r1" component-url="/_astro/App.CUDax6GH.js" component-export="default" renderer-url="/_astro/client.DIQWfPlE.js" props="{}" ssr client="idle" opts="{&quot;name&quot;:&quot;App&quot;,&quot;value&quot;:true}" await-children><main class="min-h-screen flex flex-col"><header class="py-12 px-4 text-center"><h1 class="text-3xl sm:text-4xl font-bold text-gh-text mb-2"><span class="text-gh-accent">GitHub</span> Skills Scanner</h1><p class="text-gh-text-secondary max-w-md mx-auto">Enter a GitHub username or profile URL to extract developer skills and technologies.</p></header><section class="px-4"><form class="w-full max-w-2xl mx-auto"><div class="flex gap-2"><input id="github-profile-input" type="text" placeholder="Username or GitHub URL" class="flex-1 px-4 py-3 rounded-lg bg-gh-bg-secondary border border-gh-border text-gh-text placeholder:text-gh-text-secondary focus:outline-none focus:border-gh-accent focus:ring-1 focus:ring-gh-accent transition-colors disabled:opacity-50" aria-label="GitHub username or URL" name="githubProfile" value=""/><div class="token-input"><button type="button" class="btn-secondary" title="Add GitHub token to unlock fast scanning (5000 req/hr instead of 60)">🔓 Add Token</button><style>
+        .token-input {
+          position: relative;
+        }
+
+        .btn-secondary {
+          padding: 0.75rem 1.5rem;
+          background: #161b22;
+          border: 1px solid #30363d;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 1rem;
+          font-weight: 500;
+          transition: all 0.2s;
+          color: #e6edf3;
+          white-space: nowrap;
+        }
+
+        .btn-secondary:hover {
+          background: #1c2128;
+          border-color: #58a6ff;
+        }
+
+        .btn-secondary.btn-active {
+          border-color: #3fb950;
+          color: white;
+        }
+
+        .btn-danger {
+          background: #da3633;
+          color: white;
+          border: none;
+        }
+
+        .btn-danger:hover {
+          background: #f85149;
+        }
+
+        .token-modal {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.8);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+        }
+
+        .token-modal-content {
+          background: #161b22;
+          border: 1px solid #30363d;
+          border-radius: 8px;
+          padding: 1.5rem;
+          max-width: 400px;
+          width: 90%;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+          color: #e6edf3;
+        }
+
+        .token-modal-content h3 {
+          margin: 0 0 1rem 0;
+          font-size: 1.1rem;
+          color: #e6edf3;
+        }
+
+        .token-info {
+          background: #0d1117;
+          padding: 1rem;
+          border-radius: 6px;
+          margin: 1rem 0;
+          font-size: 0.85rem;
+          line-height: 1.4;
+          border-left: 3px solid #58a6ff;
+          color: #8b949e;
+        }
+
+        .token-info.token-active {
+          background: #0d2d1a;
+          border-left-color: #3fb950;
+          color: #a4d65e;
+        }
+
+        .token-input-field {
+          margin: 1rem 0;
+        }
+
+        .token-input-field input {
+          width: 100%;
+          padding: 0.75rem;
+          border: 1px solid #30363d;
+          border-radius: 6px;
+          font-size: 0.9rem;
+          font-family: 'Courier New', monospace;
+          box-sizing: border-box;
+          background: #0d1117;
+          color: #e6edf3;
+        }
+
+        .token-input-field input:focus {
+          outline: none;
+          border-color: #58a6ff;
+          box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
+        }
+
+        .token-input-field input::placeholder {
+          color: #8b949e;
+        }
+
+        .token-error {
+          display: block;
+          color: #f85149;
+          font-size: 0.85rem;
+          margin-top: 0.5rem;
+        }
+
+        .token-actions {
+          display: flex;
+          gap: 0.75rem;
+          margin: 1.5rem 0;
+        }
+
+        .token-actions button {
+          flex: 1;
+          padding: 0.75rem;
+          border: 1px solid #30363d;
+          border-radius: 6px;
+          background: #0d1117;
+          color: #e6edf3;
+          cursor: pointer;
+          font-size: 0.9rem;
+          transition: all 0.2s;
+        }
+
+        .token-actions button:hover {
+          background: #161b22;
+          border-color: #58a6ff;
+          color: #79c0ff;
+        }
+
+        .token-actions button:first-child {
+          background: #238636;
+          color: white;
+          border-color: #238636;
+        }
+
+        .token-actions button:first-child:hover {
+          background: #2ea043;
+        }
+
+        .token-actions button:first-child:disabled {
+          background: #363b42;
+          color: #8b949e;
+          cursor: not-allowed;
+        }
+
+        .token-hint {
+          font-size: 0.8rem;
+          color: #8b949e;
+          margin: 1rem 0 0 0;
+          line-height: 1.4;
+        }
+
+        .token-hint a {
+          color: #58a6ff;
+          text-decoration: none;
+        }
+
+        .token-hint a:hover {
+          text-decoration: underline;
+          color: #79c0ff;
+        }
+      </style></div><button type="submit" disabled="" class="px-6 py-3 rounded-lg bg-gh-green text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">Scan</button></div><label class="mt-3 inline-flex items-center gap-2 text-sm text-gh-text-secondary select-none"><input type="checkbox" class="h-4 w-4 rounded border-gh-border bg-gh-bg-secondary text-gh-accent focus:ring-gh-accent disabled:opacity-50" checked=""/>Include archived repositories</label></form></section><footer class="mt-auto py-6 text-center text-sm text-gh-text/85 space-y-1"><p>Made by<!-- --> <a href="https://www.linkedin.com/in/mskvitalii/" target="_blank" rel="noopener noreferrer" class="text-gh-accent underline underline-offset-2 decoration-1 hover:decoration-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gh-accent/70 rounded-sm">Vitalii Popov</a></p><p>Data from<!-- --> <a href="https://docs.github.com/en/rest" target="_blank" rel="noopener noreferrer" class="text-gh-accent underline underline-offset-2 decoration-1 hover:decoration-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gh-accent/70 rounded-sm">GitHub API</a>. Rate limit: 60 requests/hour without token.</p><p class="flex items-center justify-center gap-3"><a href="/privacy" class="text-gh-accent underline underline-offset-2 decoration-1 hover:decoration-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gh-accent/70 rounded-sm">Privacy Policy</a><button type="button" class="text-gh-accent underline underline-offset-2 decoration-1 hover:decoration-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gh-accent/70 rounded-sm">Manage Cookies</button></p></footer></main><!--astro:end--></astro-island>  </body></html>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { trackAnalyticsEvent } from '../lib/analytics';
 import { parseUsername, scanUser, type ScanProgress } from '../lib/github';
 import { getToken } from '../lib/token';
 import type { ScanResult } from '../lib/types';
@@ -13,7 +14,7 @@ type AnalyticsConsent = 'granted' | 'denied' | null;
 declare global {
   interface Window {
     __BASE_URL__?: string;
-    gtag?: (...args: any[]) => void;
+    va?: (...args: any[]) => void;
     setAnalyticsConsent?: (granted: boolean) => void;
   }
 }
@@ -33,13 +34,21 @@ function getInitialUsernameFromLocation(): string {
 
 function sendGaPageView(path: string): void {
   if (typeof window === 'undefined') return;
-  if (typeof window.gtag !== 'function') return;
-  if (window.localStorage.getItem('ga_consent') !== 'granted') return;
-
-  window.gtag('event', 'page_view', {
+  trackAnalyticsEvent('page_view', {
     page_location: window.location.href,
     page_path: path,
     page_title: document.title,
+  });
+}
+
+function sendVercelPageView(path: string): void {
+  if (typeof window === 'undefined') return;
+  if (typeof window.va !== 'function') return;
+
+  window.va('pageview', {
+    page_path: path,
+    path,
+    route: path,
   });
 }
 
@@ -57,6 +66,7 @@ function setCanonicalProfilePath(username: string): void {
 
   window.history.replaceState({}, '', targetPath);
   sendGaPageView(targetPath);
+  sendVercelPageView(targetPath);
 }
 
 function getInitialConsent(): AnalyticsConsent {
@@ -102,6 +112,12 @@ export default function App() {
       const username = parseUsername(input);
       if (!username) return;
 
+      trackAnalyticsEvent('scan_started', {
+        has_token: Boolean(token),
+        include_archived: includeArchived,
+        trigger: 'search',
+      });
+
       setIsLoading(true);
       setError(null);
       setResult(null);
@@ -116,6 +132,20 @@ export default function App() {
             includeArchived,
           },
         );
+
+        const skillsDetected = scanResult.categories.reduce(
+          (acc, category) => acc + category.skills.length,
+          0,
+        );
+
+        trackAnalyticsEvent('scan_completed', {
+          has_token: Boolean(token),
+          include_archived: includeArchived,
+          scanned_repos: scanResult.scannedRepos,
+          total_repos: scanResult.totalRepos,
+          skills_detected: skillsDetected,
+        });
+
         setResult(scanResult);
         setCanonicalProfilePath(username);
       } catch (err) {
@@ -211,6 +241,21 @@ export default function App() {
           </a>
           . Rate limit: 60 requests/hour without token.
         </p>
+        <p className='flex items-center justify-center gap-3'>
+          <a
+            href='/privacy'
+            className='text-gh-accent underline underline-offset-2 decoration-1 hover:decoration-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gh-accent/70 rounded-sm'
+          >
+            Privacy Policy
+          </a>
+          <button
+            type='button'
+            onClick={() => setConsent(null)}
+            className='text-gh-accent underline underline-offset-2 decoration-1 hover:decoration-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gh-accent/70 rounded-sm'
+          >
+            Manage Cookies
+          </button>
+        </p>
       </footer>
 
       {isHydrated && consent === null && (
@@ -218,7 +263,14 @@ export default function App() {
           <div className='mx-auto max-w-5xl flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
             <p className='text-sm text-gh-text-secondary'>
               I use Google Analytics to understand product usage and improve the
-              scanner.
+              scanner. Read the{' '}
+              <a
+                href='/privacy'
+                className='text-gh-accent underline underline-offset-2 decoration-1 hover:decoration-2'
+              >
+                Privacy Policy
+              </a>
+              .
             </p>
             <div className='flex items-center gap-2'>
               <button

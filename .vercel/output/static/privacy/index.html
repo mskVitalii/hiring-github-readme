@@ -1,0 +1,162 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="Privacy policy for Hiring GitHub Readme, including analytics and cookie consent details."><meta name="generator" content="Astro v6.0.4"><meta name="theme-color" content="#0d1117"><meta name="author" content="Vitalii Popov"><meta name="keywords" content="github, developer skills, hiring, recruiter, HR, tech stack, portfolio, resume"><!-- Open Graph --><meta property="og:type" content="website"><meta property="og:title" content="Privacy Policy — Hiring GitHub Readme"><meta property="og:description" content="Privacy policy for Hiring GitHub Readme, including analytics and cookie consent details."><meta property="og:url" content="https://hiring-github-readme.vercel.app/privacy/"><meta property="og:image" content="https://hiring-github-readme.vercel.app/og-image.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:site_name" content="Hiring GitHub Readme"><meta property="og:locale" content="en_US"><!-- Twitter --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Privacy Policy — Hiring GitHub Readme"><meta name="twitter:description" content="Privacy policy for Hiring GitHub Readme, including analytics and cookie consent details."><meta name="twitter:image" content="https://hiring-github-readme.vercel.app/og-image.png"><link rel="canonical" href="https://hiring-github-readme.vercel.app/privacy/"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png"><link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png"><link rel="apple-touch-icon" href="/favicon-192.png"><title>Privacy Policy — Hiring GitHub Readme</title><!-- Structured Data --><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Hiring GitHub Readme","description":"Privacy policy for Hiring GitHub Readme, including analytics and cookie consent details.","url":"https://hiring-github-readme.vercel.app/privacy/","applicationCategory":"DeveloperApplication","operatingSystem":"Any","author":{"@type":"Person","name":"Vitalii Popov","url":"https://www.linkedin.com/in/mskvitalii/"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script><!-- Google Analytics --><script>(function(){const gaId = "G-LVTVDKXWGJ";
+
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = window.gtag || function () {
+          window.dataLayer.push(arguments);
+        };
+
+        const consentKey = 'ga_consent';
+        const analyticsSrc = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
+        let isConfigured = false;
+        let hasRequestedScript = false;
+
+        function gtag() {
+          window.gtag(...arguments);
+        }
+
+        function ensureAnalyticsScript() {
+          if (hasRequestedScript) return;
+          hasRequestedScript = true;
+
+          const script = document.createElement('script');
+          script.async = true;
+          script.src = analyticsSrc;
+          document.head.appendChild(script);
+
+          gtag('js', new Date());
+        }
+
+        function configureAnalytics() {
+          if (isConfigured) return;
+          gtag('config', gaId, { send_page_view: false });
+          isConfigured = true;
+        }
+
+        function updateConsent(value) {
+          gtag('consent', 'update', {
+            ad_storage: 'denied',
+            ad_user_data: 'denied',
+            ad_personalization: 'denied',
+            analytics_storage: value,
+          });
+        }
+
+        function sendInitialPageView() {
+          gtag('event', 'page_view', {
+            page_location: window.location.href,
+            page_path: window.location.pathname,
+            page_title: document.title,
+          });
+        }
+
+        function setAnalyticsConsent(granted) {
+          const value = granted ? 'granted' : 'denied';
+          localStorage.setItem(consentKey, value);
+
+          if (granted) {
+            ensureAnalyticsScript();
+            configureAnalytics();
+          }
+
+          updateConsent(value);
+
+          if (granted) {
+            sendInitialPageView();
+          }
+        }
+
+        window.setAnalyticsConsent = setAnalyticsConsent;
+
+        gtag('consent', 'default', {
+          ad_storage: 'denied',
+          ad_user_data: 'denied',
+          ad_personalization: 'denied',
+          analytics_storage: 'denied',
+        });
+
+        if (localStorage.getItem(consentKey) === 'granted') {
+          ensureAnalyticsScript();
+          configureAnalytics();
+          updateConsent('granted');
+          sendInitialPageView();
+        }
+      })();</script><script>(function(){const base = "/";
+
+        window.va = window.va || function () {
+          window.vaq = window.vaq || [];
+          window.vaq.push(arguments);
+        };
+
+        window.si = window.si || function () {
+          window.siq = window.siq || [];
+          window.siq.push(arguments);
+        };
+
+        function normalizePath(path) {
+          return path.replace(/\/+/g, '/');
+        }
+
+        function injectScript(src, dataset) {
+          if (document.head.querySelector(`script[src="${src}"]`)) return;
+
+          const script = document.createElement('script');
+          script.src = src;
+          script.defer = true;
+
+          Object.entries(dataset).forEach(([key, value]) => {
+            script.dataset[key] = value;
+          });
+
+          document.head.appendChild(script);
+        }
+
+        function loadVercelInsights() {
+          const basePath = normalizePath(base || '/');
+          const analyticsScript = normalizePath(`${basePath}_vercel/insights/script.js`);
+          const speedInsightsScript = normalizePath(`${basePath}_vercel/speed-insights/script.js`);
+          const currentPath = window.location.pathname;
+
+          injectScript(analyticsScript, {
+            sdkn: '@vercel/analytics/custom',
+            sdkv: '2.0.1',
+          });
+
+          injectScript(speedInsightsScript, {
+            sdkn: '@vercel/speed-insights/custom',
+            sdkv: '2.0.0',
+          });
+
+          window.va('pageview', {
+            route: currentPath,
+            path: currentPath,
+          });
+        }
+
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(loadVercelInsights, { timeout: 2500 });
+        } else {
+          window.setTimeout(loadVercelInsights, 1500);
+        }
+      })();</script><link rel="stylesheet" href="/_astro/Layout.m2maMuyg.css"></head> <body class="min-h-screen bg-gh-bg text-gh-text" data-base-url="/">  <main class="min-h-screen px-4 py-10"> <article class="mx-auto max-w-3xl rounded-xl border border-gh-border/70 bg-gh-card/45 p-6 sm:p-8 space-y-5"> <header class="space-y-2"> <h1 class="text-3xl font-bold text-gh-text">Privacy Policy</h1> <p class="text-gh-text-secondary text-sm">Last updated: March 19, 2026</p> </header> <p class="text-gh-text-secondary">
+This website is a personal project operated by Vitalii Popov. I respect your privacy and collect only
+        the minimum data needed to understand product usage and improve the app.
+</p> <section class="space-y-2"> <h2 class="text-xl font-semibold text-gh-text">What Data Is Processed</h2> <p class="text-gh-text-secondary">
+When analytics consent is granted, Google Analytics 4 may process technical usage data such as page views,
+          approximate location (region/city), device/browser information, and anonymized interaction metrics.
+          I do not intentionally send personal identifiers such as names, emails, or private content to analytics.
+</p> </section> <section class="space-y-2"> <h2 class="text-xl font-semibold text-gh-text">Purpose and Legal Basis</h2> <p class="text-gh-text-secondary">
+Analytics is used only to understand usage trends and improve this product. For visitors in the EU/EEA,
+          analytics cookies are enabled only after explicit consent.
+</p> </section> <section class="space-y-2"> <h2 class="text-xl font-semibold text-gh-text">Cookies and Consent</h2> <p class="text-gh-text-secondary">
+By default, analytics storage is disabled. You can accept or decline analytics in the cookie banner.
+          You can also change your decision anytime using the "Manage Cookies" button in the footer.
+</p> </section> <section class="space-y-2"> <h2 class="text-xl font-semibold text-gh-text">Third-Party Processors</h2> <p class="text-gh-text-secondary">
+This site uses Google Analytics (Google Ireland Limited / Google LLC) and Vercel hosting.
+          Data processing by third parties is subject to their own privacy terms.
+</p> </section> <section class="space-y-2"> <h2 class="text-xl font-semibold text-gh-text">Data Retention</h2> <p class="text-gh-text-secondary">
+Retention settings are managed in the Google Analytics property. Data is retained only as long as
+          needed for aggregated analytics reporting.
+</p> </section> <section class="space-y-2"> <h2 class="text-xl font-semibold text-gh-text">Contact</h2> <p class="text-gh-text-secondary">
+For privacy questions, contact: <a class="text-gh-accent underline underline-offset-2" href="https://www.linkedin.com/in/mskvitalii/" target="_blank" rel="noopener noreferrer">Vitalii Popov</a> </p> </section> <footer class="pt-2"> <a href="/" class="inline-flex px-4 py-2 rounded-md bg-gh-accent text-gh-bg font-semibold hover:opacity-90 transition-opacity">
+Back to Scanner
+</a> </footer> </article> </main>  </body></html>

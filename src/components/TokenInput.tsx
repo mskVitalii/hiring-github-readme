@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { trackAnalyticsEvent } from '../lib/analytics';
 import { clearToken, getToken, saveToken, validateToken } from '../lib/token';
 
 interface TokenInputProps {
@@ -38,6 +39,9 @@ export function TokenInput({ onTokenChange }: TokenInputProps) {
     setInputValue('');
     setIsOpen(false);
     setIsValidating(false);
+    trackAnalyticsEvent('token_saved', {
+      source: 'token_modal',
+    });
     onTokenChange?.(inputValue);
   };
 
@@ -45,6 +49,9 @@ export function TokenInput({ onTokenChange }: TokenInputProps) {
     clearToken();
     setToken(null);
     setInputValue('');
+    trackAnalyticsEvent('token_removed', {
+      source: 'token_modal',
+    });
     onTokenChange?.(null);
   };
 
@@ -54,7 +61,15 @@ export function TokenInput({ onTokenChange }: TokenInputProps) {
         <button
           type='button'
           className='btn-secondary'
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => {
+            const nextIsOpen = !isOpen;
+            if (nextIsOpen) {
+              trackAnalyticsEvent('token_modal_opened', {
+                has_token: false,
+              });
+            }
+            setIsOpen(nextIsOpen);
+          }}
           title='Add GitHub token to unlock fast scanning (5000 req/hr instead of 60)'
         >
           🔓 Add Token
@@ -63,7 +78,15 @@ export function TokenInput({ onTokenChange }: TokenInputProps) {
         <button
           type='button'
           className='btn-secondary btn-active'
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => {
+            const nextIsOpen = !isOpen;
+            if (nextIsOpen) {
+              trackAnalyticsEvent('token_modal_opened', {
+                has_token: true,
+              });
+            }
+            setIsOpen(nextIsOpen);
+          }}
           title='Authenticated with GitHub token (5000 req/hr)'
         >
           ✅ Token Active

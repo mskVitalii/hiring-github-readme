@@ -1,6 +1,7 @@
 // @ts-check
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
+import vercel from '@astrojs/vercel';
 import sentry from '@sentry/astro';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
@@ -12,6 +13,7 @@ export default defineConfig({
   site: 'https://hiring-github-readme.vercel.app',
   base: '/',
   output: 'static',
+  adapter: vercel(),
 
   integrations: [
     react(),

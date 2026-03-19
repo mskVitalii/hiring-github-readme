@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { trackAnalyticsEvent } from '../lib/analytics';
 import { generateMarkdown } from '../lib/markdown';
 import type { ScanResult } from '../lib/types';
 
@@ -27,6 +28,14 @@ export default function MarkdownPreview({ result }: Props) {
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(markdown);
+    trackAnalyticsEvent('markdown_copied', {
+      active_tab: tab,
+      show_stars: showStars,
+      show_demo: showDemo,
+      show_archived: showArchived,
+      show_topics: showTopics,
+      markdown_length: markdown.length,
+    });
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

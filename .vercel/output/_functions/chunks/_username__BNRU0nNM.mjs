@@ -1,6 +1,6 @@
-import { c as createComponent } from './astro-component_P8Z5JxXX.mjs';
+import { c as createComponent } from './astro-component_B53dHmGQ.mjs';
 import 'piccolore';
-import { r as renderTemplate, l as renderSlot, h as addAttribute, n as renderHead, o as defineScriptVars, u as unescapeHTML, p as renderComponent } from './entrypoint_DOsdzKRG.mjs';
+import { r as renderTemplate, l as renderSlot, h as addAttribute, n as renderHead, o as defineScriptVars, u as unescapeHTML, p as renderComponent } from './entrypoint_BXPLeSWz.mjs';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import 'clsx';
@@ -15,11 +15,14 @@ function hasGaConsent() {
   }
 }
 function normalizeParams(params) {
-  return Object.entries(params).reduce((acc, [key, value]) => {
-    if (value === null || value === void 0) return acc;
-    acc[key] = value;
-    return acc;
-  }, {});
+  return Object.entries(params).reduce(
+    (acc, [key, value]) => {
+      if (value === null || value === void 0) return acc;
+      acc[key] = value;
+      return acc;
+    },
+    {}
+  );
 }
 function trackAnalyticsEvent(name, params = {}) {
   if (typeof window === "undefined") return;

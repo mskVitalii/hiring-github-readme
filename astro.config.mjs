@@ -13,7 +13,11 @@ export default defineConfig({
   site: 'https://hiring-github-readme.vercel.app',
   base: '/',
   output: 'static',
-  adapter: vercel(),
+  adapter: vercel({
+    isr: {
+      expiration: 60 * 60, // кеш профилей на 1 час
+    },
+  }),
 
   integrations: [
     react(),

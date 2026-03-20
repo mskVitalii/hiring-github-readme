@@ -31,5 +31,8 @@ export default defineConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    build: {
+      target: 'es2022',
+    },
   },
 });

@@ -1,13 +1,14 @@
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { trackAnalyticsEvent } from '../lib/analytics';
-import { parseUsername, scanUser, type ScanProgress } from '../lib/github';
+import type { ScanProgress } from '../lib/github';
 import { getToken } from '../lib/token';
 import type { ScanResult } from '../lib/types';
-import MarkdownPreview from './MarkdownPreview';
 import ProgressBar from './ProgressBar';
 import SearchBar from './SearchBar';
-import SkillsList from './SkillsList';
-import UserCard from './UserCard';
+
+const UserCard = lazy(() => import('./UserCard'));
+const SkillsList = lazy(() => import('./SkillsList'));
+const MarkdownPreview = lazy(() => import('./MarkdownPreview'));
 
 type AnalyticsConsent = 'granted' | 'denied' | null;
 
@@ -30,6 +31,23 @@ function getInitialUsernameFromLocation(): string {
   const path = window.location.pathname;
   const relative = path.startsWith(base) ? path.slice(base.length) : path;
   return relative.split('/').filter(Boolean)[0] ?? '';
+}
+
+function parseUsername(input: string): string {
+  const raw = input.trim();
+  if (!raw) return '';
+
+  try {
+    const url = new URL(raw);
+    if (url.hostname.toLowerCase() === 'github.com') {
+      const path = url.pathname.replace(/^\/+|\/+$/g, '');
+      return path.split('/')[0] ?? '';
+    }
+  } catch {
+    // Ignore URL parsing failures and fallback to plain username handling.
+  }
+
+  return raw.replace(/^@/, '').split('/')[0] ?? '';
 }
 
 function sendGaPageView(path: string): void {
@@ -129,6 +147,7 @@ export default function App() {
       setProgress({ phase: 'user' });
 
       try {
+        const { scanUser } = await import('../lib/github');
         const scanResult = await scanUser(
           username,
           token ?? undefined,
@@ -214,13 +233,21 @@ export default function App() {
       {/* Results */}
       {result && (
         <section className='px-4 py-8 space-y-8'>
-          <UserCard
-            user={result.user}
-            totalRepos={result.totalRepos}
-            scannedRepos={result.scannedRepos}
-          />
-          <SkillsList categories={result.categories} />
-          <MarkdownPreview result={result} />
+          <Suspense
+            fallback={
+              <div className='text-center text-sm text-gh-text-secondary'>
+                Loading results...
+              </div>
+            }
+          >
+            <UserCard
+              user={result.user}
+              totalRepos={result.totalRepos}
+              scannedRepos={result.scannedRepos}
+            />
+            <SkillsList categories={result.categories} />
+            <MarkdownPreview result={result} />
+          </Suspense>
         </section>
       )}
 

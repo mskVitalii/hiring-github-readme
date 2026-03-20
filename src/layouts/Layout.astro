@@ -13,6 +13,16 @@ const {
 
 const base = import.meta.env.BASE_URL || '/';
 const isProduction = import.meta.env.PROD;
+const sentryDsn = import.meta.env.PUBLIC_SENTRY_DSN;
+let sentryOrigin = null;
+
+if (sentryDsn) {
+  try {
+    sentryOrigin = new URL(sentryDsn).origin;
+  } catch {
+    sentryOrigin = null;
+  }
+}
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL(`${base}og-image.png`, Astro.site);
 
@@ -71,6 +81,12 @@ const jsonLd = {
     <link rel="icon" type="image/png" sizes="192x192" href={`${base}favicon-192.png`} />
     <link rel="icon" type="image/png" sizes="512x512" href={`${base}favicon-512.png`} />
     <link rel="apple-touch-icon" href={`${base}favicon-192.png`} />
+    {isProduction && sentryOrigin && (
+      <>
+        <link rel="preconnect" href={sentryOrigin} crossorigin />
+        <link rel="dns-prefetch" href={sentryOrigin} />
+      </>
+    )}
 
     <title>{title}</title>
 

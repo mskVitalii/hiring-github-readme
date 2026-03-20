@@ -36,9 +36,17 @@ if (isValidUsername) {
 
 const displayName = user?.name?.trim() || user?.login || rawUsername;
 const title = `${displayName} - GitHub Skills Scanner`;
-const description = user?.bio?.trim()
+const baseDescription = user?.bio?.trim()
   ? `${displayName}: ${user.bio}`
   : `Open ${displayName} in Hiring GitHub Readme to scan public repositories and generate a recruiter-ready skills summary.`;
+
+const descriptionSuffix =
+  ' Analyze languages, frameworks, and tooling from public repositories to create a concise hiring profile for recruiters.';
+
+const description =
+  baseDescription.length >= 100
+    ? baseDescription
+    : `${baseDescription}${descriptionSuffix}`;
 ---
 
 <Layout title={title} description={description}>

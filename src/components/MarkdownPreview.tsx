@@ -7,8 +7,13 @@ interface Props {
   result: ScanResult;
 }
 
+type ProfileRepoStatus = 'idle' | 'checking' | 'exists' | 'missing' | 'error';
+
 export default function MarkdownPreview({ result }: Props) {
   const [copied, setCopied] = useState(false);
+  const [showPostCopyPopup, setShowPostCopyPopup] = useState(false);
+  const [profileRepoStatus, setProfileRepoStatus] =
+    useState<ProfileRepoStatus>('idle');
   const [tab, setTab] = useState<'preview' | 'raw'>('preview');
   const [showStars, setShowStars] = useState(true);
   const [showDemo, setShowDemo] = useState(true);
@@ -26,6 +31,37 @@ export default function MarkdownPreview({ result }: Props) {
     [result, showArchived, showDemo, showStars, showTopics],
   );
 
+  const checkProfileReadmeRepo = async () => {
+    setProfileRepoStatus('checking');
+
+    try {
+      const owner = result.user.login;
+      const repo = result.user.login;
+      const response = await fetch(
+        `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`,
+        {
+          headers: {
+            Accept: 'application/vnd.github+json',
+          },
+        },
+      );
+
+      if (response.status === 200) {
+        setProfileRepoStatus('exists');
+        return;
+      }
+
+      if (response.status === 404) {
+        setProfileRepoStatus('missing');
+        return;
+      }
+
+      setProfileRepoStatus('error');
+    } catch {
+      setProfileRepoStatus('error');
+    }
+  };
+
   const handleCopy = async () => {
     await navigator.clipboard.writeText(markdown);
     trackAnalyticsEvent('markdown_copied', {
@@ -37,8 +73,15 @@ export default function MarkdownPreview({ result }: Props) {
       markdown_length: markdown.length,
     });
     setCopied(true);
+    setShowPostCopyPopup(true);
+    void checkProfileReadmeRepo();
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const githubStarUrl = 'https://github.com/mskVitalii/hiring-github-readme';
+  const profileReadmeRepoUrl = `https://github.com/${result.user.login}/${result.user.login}`;
+  const profileReadmeEditUrl = `${profileReadmeRepoUrl}/edit/main/README.md`;
+  const createProfileRepoUrl = `https://github.com/new?name=${encodeURIComponent(result.user.login)}&description=${encodeURIComponent('GitHub profile README')}`;
 
   return (
     <div className='w-full max-w-3xl mx-auto'>
@@ -128,6 +171,115 @@ export default function MarkdownPreview({ result }: Props) {
           </div>
         )}
       </div>
+
+      {showPostCopyPopup && (
+        <div className='fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4'>
+          <div className='w-full max-w-md rounded-xl border border-gh-border bg-gh-card p-5'>
+            <h3 className='text-lg font-semibold text-gh-text mb-2'>
+              One final step
+            </h3>
+            <p className='text-sm text-gh-text-secondary mb-4'>
+              Markdown is copied. You can now star the project and apply the
+              generated README in your GitHub profile repository.
+            </p>
+            <div className='space-y-2'>
+              <a
+                href={githubStarUrl}
+                target='_blank'
+                rel='noopener noreferrer'
+                className='w-full inline-flex items-center justify-center px-3 py-2 rounded-md bg-gh-accent text-gh-bg font-semibold hover:opacity-90'
+              >
+                Star on GitHub
+              </a>
+
+              {profileRepoStatus === 'checking' && (
+                <p className='text-xs text-gh-text-secondary'>
+                  Checking your profile README repository...
+                </p>
+              )}
+
+              {profileRepoStatus === 'exists' && (
+                <>
+                  <a
+                    href={profileReadmeEditUrl}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='w-full inline-flex items-center justify-center px-3 py-2 rounded-md border border-gh-border text-gh-text hover:border-gh-accent hover:text-gh-accent'
+                  >
+                    Open README editor
+                  </a>
+                  <a
+                    href={profileReadmeRepoUrl}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='w-full inline-flex items-center justify-center px-3 py-2 rounded-md border border-gh-border text-gh-text-secondary hover:border-gh-accent hover:text-gh-accent'
+                  >
+                    Open profile repository
+                  </a>
+                </>
+              )}
+
+              {profileRepoStatus === 'missing' && (
+                <>
+                  <div className='rounded-md border border-gh-border p-3 text-xs text-gh-text-secondary space-y-1'>
+                    <p className='font-medium text-gh-text'>
+                      Profile repository not found
+                    </p>
+                    <p>
+                      1. Create a public repository named exactly{' '}
+                      {result.user.login}.
+                    </p>
+                    <p>2. Add README.md during creation.</p>
+                    <p>3. Paste copied markdown into README.md and commit.</p>
+                  </div>
+                  <a
+                    href={createProfileRepoUrl}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='w-full inline-flex items-center justify-center px-3 py-2 rounded-md border border-gh-border text-gh-text hover:border-gh-accent hover:text-gh-accent'
+                  >
+                    Create profile repository
+                  </a>
+                </>
+              )}
+
+              {profileRepoStatus === 'error' && (
+                <>
+                  <p className='text-xs text-gh-text-secondary'>
+                    Could not verify repository automatically. You can create it
+                    or open it manually.
+                  </p>
+                  <div className='grid grid-cols-1 gap-2'>
+                    <a
+                      href={createProfileRepoUrl}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='w-full inline-flex items-center justify-center px-3 py-2 rounded-md border border-gh-border text-gh-text hover:border-gh-accent hover:text-gh-accent'
+                    >
+                      Create profile repository
+                    </a>
+                    <a
+                      href={profileReadmeRepoUrl}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='w-full inline-flex items-center justify-center px-3 py-2 rounded-md border border-gh-border text-gh-text-secondary hover:border-gh-accent hover:text-gh-accent'
+                    >
+                      Open profile repository
+                    </a>
+                  </div>
+                </>
+              )}
+            </div>
+            <button
+              type='button'
+              onClick={() => setShowPostCopyPopup(false)}
+              className='mt-4 w-full px-3 py-2 rounded-md text-sm text-gh-text-secondary hover:text-gh-text border border-gh-border'
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -249,6 +249,18 @@ export default function App() {
           </a>
           . Rate limit: 60 requests/hour without token.
         </p>
+        <p>
+          Like this tool?{' '}
+          <a
+            href='https://github.com/mskVitalii/hiring-github-readme'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='text-gh-accent underline underline-offset-2 decoration-1 hover:decoration-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gh-accent/70 rounded-sm'
+          >
+            Star it on GitHub
+          </a>
+          .
+        </p>
         <p className='flex items-center justify-center gap-3'>
           <a
             href='/privacy'

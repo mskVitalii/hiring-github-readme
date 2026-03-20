@@ -11,6 +11,8 @@ import type {
 const API_BASE = 'https://api.github.com';
 
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+const TOKEN_LANG_CONCURRENCY = 12;
+const TOKEN_TREE_CONCURRENCY = 8;
 
 interface CacheEntry<T> {
   data: T;
@@ -843,7 +845,7 @@ export async function scanUser(
   );
   const languageMaps = new Map<string, RepoLanguages>();
 
-  // Fetch languages in parallel (max 5 concurrent)
+  // Fetch languages in parallel with a bounded limit to avoid GitHub secondary throttling.
   onProgress?.({
     phase: 'languages',
     current: 0,
@@ -864,7 +866,7 @@ export async function scanUser(
     return { repo: repo.name, langs };
   });
 
-  const languageResults = await pLimit(languageTasks, 5);
+  const languageResults = await pLimit(languageTasks, TOKEN_LANG_CONCURRENCY);
   languageResults.forEach(({ repo, langs }) => {
     languageMaps.set(repo, langs);
   });
@@ -922,7 +924,7 @@ export async function scanUser(
 
   const rootFilesMap = new Map<string, string[]>();
 
-  // Fetch tree paths in parallel (max 5 concurrent)
+  // Fetch tree paths in parallel with a bounded limit to avoid request bursts.
   const treeTasks = treeRepos.map((repo, idx) => async () => {
     onProgress?.({
       phase: 'languages',
@@ -933,7 +935,7 @@ export async function scanUser(
     return { repo: repo.name, files };
   });
 
-  const treeResults = await pLimit(treeTasks, 5);
+  const treeResults = await pLimit(treeTasks, TOKEN_TREE_CONCURRENCY);
   treeResults.forEach(({ repo, files }) => {
     rootFilesMap.set(repo, files);
   });

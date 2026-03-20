@@ -173,13 +173,13 @@ export default function MarkdownPreview({ result }: Props) {
       </div>
 
       {showPostCopyPopup && (
-        <div className='fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4'>
+        <div className='fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center px-4'>
           <div className='w-full max-w-md rounded-xl border border-gh-border bg-gh-card p-5'>
             <h3 className='text-lg font-semibold text-gh-text mb-2'>
-              One final step
+              🚀 One final step
             </h3>
             <p className='text-sm text-gh-text-secondary mb-4'>
-              Markdown is copied. You can now star the project and apply the
+              ✅ Markdown is copied. You can now star the project and apply the
               generated README in your GitHub profile repository.
             </p>
             <div className='space-y-2'>
@@ -189,7 +189,7 @@ export default function MarkdownPreview({ result }: Props) {
                 rel='noopener noreferrer'
                 className='w-full inline-flex items-center justify-center px-3 py-2 rounded-md bg-gh-accent text-gh-bg font-semibold hover:opacity-90'
               >
-                Star on GitHub
+                ⭐ Star on GitHub
               </a>
 
               {profileRepoStatus === 'checking' && (
@@ -206,7 +206,7 @@ export default function MarkdownPreview({ result }: Props) {
                     rel='noopener noreferrer'
                     className='w-full inline-flex items-center justify-center px-3 py-2 rounded-md border border-gh-border text-gh-text hover:border-gh-accent hover:text-gh-accent'
                   >
-                    Open README editor
+                    ✏️ Open README editor
                   </a>
                   <a
                     href={profileReadmeRepoUrl}
@@ -214,7 +214,7 @@ export default function MarkdownPreview({ result }: Props) {
                     rel='noopener noreferrer'
                     className='w-full inline-flex items-center justify-center px-3 py-2 rounded-md border border-gh-border text-gh-text-secondary hover:border-gh-accent hover:text-gh-accent'
                   >
-                    Open profile repository
+                    📁 Open profile repository
                   </a>
                 </>
               )}
@@ -238,7 +238,7 @@ export default function MarkdownPreview({ result }: Props) {
                     rel='noopener noreferrer'
                     className='w-full inline-flex items-center justify-center px-3 py-2 rounded-md border border-gh-border text-gh-text hover:border-gh-accent hover:text-gh-accent'
                   >
-                    Create profile repository
+                    📁 Create profile repository
                   </a>
                 </>
               )}
@@ -256,7 +256,7 @@ export default function MarkdownPreview({ result }: Props) {
                       rel='noopener noreferrer'
                       className='w-full inline-flex items-center justify-center px-3 py-2 rounded-md border border-gh-border text-gh-text hover:border-gh-accent hover:text-gh-accent'
                     >
-                      Create profile repository
+                      📁 Create profile repository
                     </a>
                     <a
                       href={profileReadmeRepoUrl}
@@ -264,7 +264,7 @@ export default function MarkdownPreview({ result }: Props) {
                       rel='noopener noreferrer'
                       className='w-full inline-flex items-center justify-center px-3 py-2 rounded-md border border-gh-border text-gh-text-secondary hover:border-gh-accent hover:text-gh-accent'
                     >
-                      Open profile repository
+                      📂 Open profile repository
                     </a>
                   </div>
                 </>

@@ -179,7 +179,7 @@ export default function MarkdownPreview({ result }: Props) {
               🚀 One final step
             </h3>
             <p className='text-sm text-gh-text-secondary mb-4'>
-              ✅ Markdown is copied. You can now star the project and apply the
+              Markdown is copied. You can now star the project and apply the
               generated README in your GitHub profile repository.
             </p>
             <div className='space-y-2'>

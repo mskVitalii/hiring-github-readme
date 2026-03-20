@@ -69,6 +69,11 @@ function setCanonicalProfilePath(username: string): void {
   sendVercelPageView(targetPath);
 }
 
+function setProfilePageTitle(displayName: string): void {
+  if (typeof document === 'undefined') return;
+  document.title = `${displayName} - GitHub Skills Scanner`;
+}
+
 function getInitialConsent(): AnalyticsConsent {
   if (typeof window === 'undefined') return null;
   const value = window.localStorage.getItem('ga_consent');
@@ -146,6 +151,9 @@ export default function App() {
           skills_detected: skillsDetected,
         });
 
+        setProfilePageTitle(
+          scanResult.user.name?.trim() || scanResult.user.login,
+        );
         setResult(scanResult);
         setCanonicalProfilePath(username);
       } catch (err) {

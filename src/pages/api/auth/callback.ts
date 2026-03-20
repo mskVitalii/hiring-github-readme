@@ -93,5 +93,10 @@ export const GET: APIRoute = async ({ url, cookies }) => {
   const redirectUrl = buildAppUrl(url, '');
   redirectUrl.searchParams.set('auth', 'github');
 
-  return Response.redirect(redirectUrl.toString(), 302);
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: redirectUrl.toString(),
+    },
+  });
 };

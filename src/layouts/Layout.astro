@@ -121,6 +121,42 @@ const jsonLd = {
           });
         }
 
+        function expireCookie(name, domain) {
+          const domainPart = domain ? `;domain=${domain}` : '';
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;max-age=0;path=/${domainPart}`;
+        }
+
+        function clearGaCookies() {
+          const cookieNames = document.cookie
+            .split(';')
+            .map((item) => item.trim().split('=')[0])
+            .filter(Boolean)
+            .filter(
+              (name) =>
+                name === '_gid' ||
+                name === '_gat' ||
+                name.startsWith('_ga') ||
+                name.startsWith('_gac_'),
+            );
+
+          if (!cookieNames.length) return;
+
+          const host = window.location.hostname;
+          const hostParts = host.split('.');
+          const domainCandidates = [''];
+
+          if (hostParts.length >= 2) {
+            domainCandidates.push(host);
+            for (let i = 0; i <= hostParts.length - 2; i += 1) {
+              domainCandidates.push(`.${hostParts.slice(i).join('.')}`);
+            }
+          }
+
+          cookieNames.forEach((name) => {
+            domainCandidates.forEach((domain) => expireCookie(name, domain));
+          });
+        }
+
         function sendInitialPageView() {
           gtag('event', 'page_view', {
             page_location: window.location.href,
@@ -140,9 +176,12 @@ const jsonLd = {
 
           updateConsent(value);
 
-          if (granted) {
-            sendInitialPageView();
+          if (!granted) {
+            clearGaCookies();
+            return;
           }
+
+          sendInitialPageView();
         }
 
         window.setAnalyticsConsent = setAnalyticsConsent;

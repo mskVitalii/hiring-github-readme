@@ -1,3 +1,4 @@
+import { CATEGORY_EMOJIS } from './keywords';
 import type { ScanResult } from './types';
 
 export interface MarkdownOptions {
@@ -48,6 +49,10 @@ function skillDisplayName(skillName: string): string {
   return lang ? `${skillName} (${lang})` : skillName;
 }
 
+function categoryDisplayName(categoryName: string): string {
+  return `${CATEGORY_EMOJIS[categoryName] ?? '📦'} ${categoryName}`;
+}
+
 function toAnchor(text: string): string {
   return `#${text
     .toLowerCase()
@@ -95,7 +100,7 @@ export function generateMarkdown(
   lines.push('## Skills by Category');
   lines.push('');
   for (const category of categories) {
-    lines.push(`### ${category.name}`);
+    lines.push(`### ${categoryDisplayName(category.name)}`);
     const badges = category.skills.map((skill) => {
       const displayName = skillDisplayName(skill.name);
       const anchor = toAnchor(displayName);
@@ -109,7 +114,7 @@ export function generateMarkdown(
 
   // Detailed sections per category
   for (const category of categories) {
-    lines.push(`## ${category.name}`);
+    lines.push(`## ${categoryDisplayName(category.name)}`);
     lines.push('');
 
     for (const skill of category.skills) {

@@ -197,6 +197,65 @@ function normalizeLang(lang: string): string | null {
   return lang; // pass-through for JavaScript, Python, Go, etc.
 }
 
+const JS_TS_LANGUAGE_SKILLS = new Set(['JavaScript', 'TypeScript']);
+const DOTNET_LANGUAGE_SKILLS = new Set([
+  'C# / .NET',
+  'C#',
+  'F#',
+  'Visual Basic .NET',
+  'VB.NET',
+]);
+
+const FRAMEWORK_LANGUAGE_GUARDS: Partial<Record<string, string[]>> = {
+  // Frontend / Node ecosystem
+  React: ['JavaScript', 'TypeScript'],
+  Vue: ['JavaScript', 'TypeScript'],
+  Angular: ['JavaScript', 'TypeScript'],
+  Svelte: ['JavaScript', 'TypeScript'],
+  'Next.js': ['JavaScript', 'TypeScript'],
+  Nuxt: ['JavaScript', 'TypeScript'],
+  Astro: ['JavaScript', 'TypeScript'],
+  Gatsby: ['JavaScript', 'TypeScript'],
+  Redux: ['JavaScript', 'TypeScript'],
+  Zustand: ['JavaScript', 'TypeScript'],
+  Vite: ['JavaScript', 'TypeScript'],
+  Webpack: ['JavaScript', 'TypeScript'],
+  'Node.js': ['JavaScript', 'TypeScript'],
+  Express: ['JavaScript', 'TypeScript'],
+  Fastify: ['JavaScript', 'TypeScript'],
+  NestJS: ['JavaScript', 'TypeScript'],
+  'React Native': ['JavaScript', 'TypeScript'],
+
+  // Backend ecosystems
+  Django: ['Python'],
+  Flask: ['Python'],
+  FastAPI: ['Python'],
+  'Spring Boot': ['Java', 'Kotlin'],
+  'Ruby on Rails': ['Ruby'],
+  Laravel: ['PHP'],
+  Gin: ['Go'],
+  Fiber: ['Go'],
+  Actix: ['Rust'],
+  Flutter: ['Dart'],
+  SwiftUI: ['Swift'],
+};
+
+function isSkillCompatibleWithLanguages(
+  skillName: string,
+  repoLanguageSkills: Set<string>,
+): boolean {
+  if (skillName === 'C# / .NET') {
+    for (const lang of DOTNET_LANGUAGE_SKILLS) {
+      if (repoLanguageSkills.has(lang)) return true;
+    }
+    return false;
+  }
+
+  const requiredLanguages = FRAMEWORK_LANGUAGE_GUARDS[skillName];
+  if (!requiredLanguages) return true;
+  return requiredLanguages.some((lang) => repoLanguageSkills.has(lang));
+}
+
 /** Fetch language breakdown for a repo */
 async function fetchRepoLanguages(
   owner: string,
@@ -321,20 +380,31 @@ function detectSkillsFromRepos(
   };
 
   for (const repo of repos) {
+    const repoPaths = rootFilesMap.get(repo.name) ?? [];
+    const hasPackageJson = repoPaths.some(
+      (p) => p === 'package.json' || p.endsWith('/package.json'),
+    );
+    const repoLanguageSkills = new Set<string>();
+
+    const addLanguageSkill = (skillName: string) => {
+      repoLanguageSkills.add(skillName);
+      addSkill(
+        skillName,
+        repo.name,
+        repo.html_url,
+        repo.homepage,
+        repo.topics,
+        repo.stargazers_count,
+        repo.updated_at,
+        repo.archived,
+      );
+    };
+
     // 1. Detect from primary language
     if (repo.language) {
       const normalized = normalizeLang(repo.language);
       if (normalized) {
-        addSkill(
-          normalized,
-          repo.name,
-          repo.html_url,
-          repo.homepage,
-          repo.topics,
-          repo.stargazers_count,
-          repo.updated_at,
-          repo.archived,
-        );
+        addLanguageSkill(normalized);
       }
     }
 
@@ -344,17 +414,15 @@ function detectSkillsFromRepos(
       for (const lang of Object.keys(langs)) {
         const normalized = normalizeLang(lang);
         if (normalized) {
-          addSkill(
-            normalized,
-            repo.name,
-            repo.html_url,
-            repo.homepage,
-            repo.topics,
-            repo.stargazers_count,
-            repo.updated_at,
-            repo.archived,
-          );
+          addLanguageSkill(normalized);
         }
+      }
+    }
+
+    // Fullstack hint: package.json means JavaScript/TypeScript are likely present.
+    if (hasPackageJson) {
+      for (const lang of JS_TS_LANGUAGE_SKILLS) {
+        addLanguageSkill(lang);
       }
     }
 
@@ -364,7 +432,10 @@ function detectSkillsFromRepos(
       .toLowerCase();
 
     for (const [skillName, keywords] of Object.entries(TECH_KEYWORDS)) {
-      if (keywords.some((kw) => searchText.includes(kw))) {
+      if (
+        keywords.some((kw) => searchText.includes(kw)) &&
+        isSkillCompatibleWithLanguages(skillName, repoLanguageSkills)
+      ) {
         addSkill(
           skillName,
           repo.name,
@@ -381,7 +452,6 @@ function detectSkillsFromRepos(
     // 4. Detect from repository file tree (infra/testing candidates)
     // This catches infra/testing patterns even when topics/descriptions are missing.
     // even when the developer hasn't set explicit topics.
-    const repoPaths = rootFilesMap.get(repo.name) ?? [];
     if (repoPaths.length > 0) {
       // GitHub Actions: .github directory is a reliable signal
       if (repoPaths.some((p) => p === '.github' || p.startsWith('.github/'))) {
@@ -646,6 +716,11 @@ function detectSkillsFromRepos(
   return skillMap;
 }
 
+export const __testables = {
+  detectSkillsFromRepos,
+  isSkillCompatibleWithLanguages,
+};
+
 /** Organize detected skills into categories */
 function categorizeSkills(
   skillMap: Map<
@@ -807,6 +882,27 @@ export async function scanUser(
     infraLanguages.has(r.language ?? null),
   );
 
+  const fullstackCandidateLanguages = new Set([
+    'Go',
+    'Python',
+    'Java',
+    'C#',
+    'Rust',
+    'Ruby',
+    'PHP',
+    'Kotlin',
+    'Scala',
+  ]);
+  const fullstackHint = /fullstack|full-stack|frontend|ui|web/i;
+  const fullstackRepos = sortedRepos
+    .filter((r) => {
+      const lang = r.language ?? '';
+      if (fullstackCandidateLanguages.has(lang)) return true;
+      const text = `${r.name} ${r.description ?? ''} ${r.topics.join(' ')}`;
+      return fullstackHint.test(text);
+    })
+    .slice(0, 40);
+
   const testingLanguages = new Set(['JavaScript', 'TypeScript', 'Python']);
   const testingHint =
     /test|testing|storybook|cypress|playwright|jest|vitest|pytest|mocha/i;
@@ -819,7 +915,7 @@ export async function scanUser(
     .slice(0, 8);
 
   const treeRepoMap = new Map<string, GitHubRepo>();
-  for (const repo of [...infraRepos, ...testingRepos]) {
+  for (const repo of [...infraRepos, ...testingRepos, ...fullstackRepos]) {
     treeRepoMap.set(repo.name, repo);
   }
   const treeRepos = [...treeRepoMap.values()];

@@ -1,3 +1,4 @@
+import { CATEGORY_EMOJIS } from '../lib/keywords';
 import type { SkillCategory } from '../lib/types';
 
 interface Props {
@@ -21,7 +22,7 @@ export default function SkillsList({ categories }: Props) {
       {categories.map((category) => (
         <div key={category.name}>
           <h3 className='text-xs font-semibold text-gh-text-secondary uppercase tracking-wide mb-2'>
-            {category.name}
+            {`${CATEGORY_EMOJIS[category.name] ?? '📦'} ${category.name}`}
           </h3>
           <div className='flex flex-wrap gap-1.5'>
             {category.skills.map((skill) => (

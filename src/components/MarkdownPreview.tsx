@@ -110,7 +110,7 @@ export default function MarkdownPreview({ result }: Props) {
         </div>
         <button
           onClick={handleCopy}
-          className='px-3 py-1.5 rounded text-sm font-medium bg-gh-green text-gh-bg hover:opacity-90 transition-opacity cursor-pointer'
+          className='px-3 py-1.5 rounded text-sm font-medium bg-gh-green text-white hover:opacity-90 transition-opacity cursor-pointer'
         >
           {copied ? '✓ Copied!' : 'Copy MD'}
         </button>

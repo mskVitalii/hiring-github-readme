@@ -273,3 +273,17 @@ export const SKILL_CATEGORIES: Record<string, string[]> = {
     'JWT',
   ],
 };
+
+/** Emoji prefix for skill category headings in UI/Markdown */
+export const CATEGORY_EMOJIS: Record<string, string> = {
+  Languages: '🧠',
+  Frontend: '🎨',
+  Backend: '⚙️',
+  Databases: '🗄️',
+  'DevOps & Cloud': '☁️',
+  Mobile: '📱',
+  'ML & AI': '🤖',
+  Testing: '🧪',
+  'Tools & Infrastructure': '🧰',
+  Other: '📦',
+};

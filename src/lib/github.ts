@@ -20,6 +20,8 @@ interface CacheEntry<T> {
 }
 
 function getCached<T>(key: string): T | null {
+  if (typeof localStorage === 'undefined') return null;
+
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return null;
@@ -35,6 +37,8 @@ function getCached<T>(key: string): T | null {
 }
 
 function setCache<T>(key: string, data: T): void {
+  if (typeof localStorage === 'undefined') return;
+
   try {
     const entry: CacheEntry<T> = { data, timestamp: Date.now() };
     localStorage.setItem(key, JSON.stringify(entry));

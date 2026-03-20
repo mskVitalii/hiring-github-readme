@@ -47,3 +47,7 @@ export interface ScanResult {
   totalRepos: number;
   scannedRepos: number;
 }
+
+export interface ApiErrorResponse {
+  error: string;
+}

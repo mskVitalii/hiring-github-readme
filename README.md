@@ -47,10 +47,22 @@ Contributions are welcome.
 
 ## Environment Variables
 
+- `GITHUB_CLIENT_ID` - GitHub OAuth App client ID for `Login with GitHub`
+- `GITHUB_CLIENT_SECRET` - GitHub OAuth App client secret used by the callback exchange
 - `PUBLIC_GA_ID` - Google Analytics 4 Measurement ID (optional, format: `G-XXXXXXXXXX`)
 - `PUBLIC_SENTRY_DSN` - browser Sentry DSN (optional)
 - `ENABLE_SENTRY` - enables `@sentry/astro` integration at build time (`true`/`false`)
 - `SENTRY_AUTH_TOKEN` - token for source map upload during build (optional)
+
+Copy [.env.example](.env.example) to `.env` locally and fill in the GitHub OAuth values.
+
+## GitHub OAuth
+
+- The app supports `Login with GitHub` via a GitHub OAuth App.
+- Required scope: `read:user repo`
+- The OAuth access token is stored in secure, `httpOnly` cookies.
+- OAuth-backed scans go through `/api/scan`, so the browser never reads the cookie token directly.
+- Manual Personal Access Tokens still work and remain stored in `localStorage` as a fallback for existing users.
 
 ## Analytics Behavior
 
@@ -58,6 +70,7 @@ Contributions are welcome.
 - Analytics storage is denied by default until user consent is provided.
 - A consent banner is shown on first visit with `Accept` and `Decline` actions.
 - In-app profile navigation sends manual `page_view` events to keep GA data accurate in SPA-like flows.
+- Scan analytics now include whether auth is available and which source is used: anonymous, PAT, or GitHub OAuth.
 
 ## Repository Profile Checklist
 

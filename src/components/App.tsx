@@ -1,8 +1,13 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { trackAnalyticsEvent } from '../lib/analytics';
+import {
+  EMPTY_OAUTH_SESSION,
+  type OAuthSession,
+  type TokenSource,
+} from '../lib/auth';
 import type { ScanProgress } from '../lib/github';
 import { getToken } from '../lib/token';
-import type { ScanResult } from '../lib/types';
+import type { ApiErrorResponse, ScanResult } from '../lib/types';
 import ProgressBar from './ProgressBar';
 import SearchBar from './SearchBar';
 
@@ -111,6 +116,67 @@ function updateAnalyticsConsent(granted: boolean): AnalyticsConsent {
   return granted ? 'granted' : 'denied';
 }
 
+function getTokenSource(
+  personalToken: string | null,
+  oauthSession: OAuthSession,
+): TokenSource {
+  if (personalToken) return 'pat';
+  if (oauthSession.authenticated) return 'oauth';
+  return 'none';
+}
+
+async function fetchOAuthSession(): Promise<OAuthSession> {
+  try {
+    const response = await fetch('/api/auth/session', {
+      credentials: 'same-origin',
+    });
+
+    if (!response.ok) return EMPTY_OAUTH_SESSION;
+
+    return (await response.json()) as OAuthSession;
+  } catch {
+    return EMPTY_OAUTH_SESSION;
+  }
+}
+
+function consumeGithubAuthFlag(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const params = new URLSearchParams(window.location.search);
+  const isGithubAuthRedirect = params.get('auth') === 'github';
+
+  if (!isGithubAuthRedirect) return false;
+
+  params.delete('auth');
+  const nextSearch = params.toString();
+  const nextUrl = `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}${window.location.hash}`;
+  window.history.replaceState({}, '', nextUrl);
+
+  return true;
+}
+
+async function scanWithOAuthSession(
+  username: string,
+  includeArchived: boolean,
+): Promise<ScanResult> {
+  const params = new URLSearchParams({
+    username,
+    includeArchived: String(includeArchived),
+  });
+  const response = await fetch(`/api/scan?${params.toString()}`, {
+    credentials: 'same-origin',
+  });
+
+  if (!response.ok) {
+    const data = (await response
+      .json()
+      .catch(() => null)) as ApiErrorResponse | null;
+    throw new Error(data?.error || 'GitHub OAuth scan failed');
+  }
+
+  return (await response.json()) as ScanResult;
+}
+
 export default function App() {
   const [isHydrated, setIsHydrated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -119,16 +185,72 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [includeArchived, setIncludeArchived] = useState(true);
   const [token, setToken] = useState<string | null>(null);
+  const [oauthSession, setOauthSession] =
+    useState<OAuthSession>(EMPTY_OAUTH_SESSION);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [initialUsername, setInitialUsername] = useState('');
   const [hasAutoScanned, setHasAutoScanned] = useState(false);
   const [consent, setConsent] = useState<AnalyticsConsent>(null);
 
+  const tokenSource = getTokenSource(token, oauthSession);
+  const hasToken = tokenSource !== 'none';
+
   useEffect(() => {
+    let isMounted = true;
+
     setIsHydrated(true);
-    setToken(getToken());
-    setInitialUsername(getInitialUsernameFromLocation());
+    const savedToken = getToken();
+    const usernameFromLocation = getInitialUsernameFromLocation();
+
+    setToken(savedToken);
+    setInitialUsername(usernameFromLocation);
     setConsent(getInitialConsent());
+
+    void (async () => {
+      const session = await fetchOAuthSession();
+      if (!isMounted) return;
+
+      setOauthSession(session);
+      setIsAuthLoading(false);
+
+      if (consumeGithubAuthFlag() && session.authenticated) {
+        trackAnalyticsEvent('oauth_login_completed', {
+          has_token: true,
+          token_source: 'oauth',
+        });
+      }
+
+      if (!usernameFromLocation && session.authenticated && session.login) {
+        setInitialUsername(session.login);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
+
+  const handleOAuthLogout = useCallback(async () => {
+    const response = await fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'same-origin',
+    });
+
+    if (!response.ok) {
+      const data = (await response
+        .json()
+        .catch(() => null)) as ApiErrorResponse | null;
+      throw new Error(data?.error || 'Failed to disconnect GitHub');
+    }
+
+    const nextTokenSource = token ? 'pat' : 'none';
+
+    setOauthSession(EMPTY_OAUTH_SESSION);
+    trackAnalyticsEvent('oauth_logout', {
+      has_token: nextTokenSource !== 'none',
+      token_source: nextTokenSource,
+    });
+  }, [token]);
 
   const handleSearch = useCallback(
     async (input: string) => {
@@ -136,8 +258,9 @@ export default function App() {
       if (!username) return;
 
       trackAnalyticsEvent('scan_started', {
-        has_token: Boolean(token),
+        has_token: hasToken,
         include_archived: includeArchived,
+        token_source: tokenSource,
         trigger: 'search',
       });
 
@@ -147,15 +270,22 @@ export default function App() {
       setProgress({ phase: 'user' });
 
       try {
-        const { scanUser } = await import('../lib/github');
-        const scanResult = await scanUser(
-          username,
-          token ?? undefined,
-          setProgress,
-          {
+        let scanResult: ScanResult;
+
+        if (token) {
+          const { scanUser } = await import('../lib/github');
+          scanResult = await scanUser(username, token, setProgress, {
             includeArchived,
-          },
-        );
+          });
+        } else if (oauthSession.authenticated) {
+          setProgress({ phase: 'repos' });
+          scanResult = await scanWithOAuthSession(username, includeArchived);
+        } else {
+          const { scanUser } = await import('../lib/github');
+          scanResult = await scanUser(username, undefined, setProgress, {
+            includeArchived,
+          });
+        }
 
         const skillsDetected = scanResult.categories.reduce(
           (acc, category) => acc + category.skills.length,
@@ -163,9 +293,10 @@ export default function App() {
         );
 
         trackAnalyticsEvent('scan_completed', {
-          has_token: Boolean(token),
+          has_token: hasToken,
           include_archived: includeArchived,
           scanned_repos: scanResult.scannedRepos,
+          token_source: tokenSource,
           total_repos: scanResult.totalRepos,
           skills_detected: skillsDetected,
         });
@@ -179,9 +310,10 @@ export default function App() {
         setError(err instanceof Error ? err.message : 'Something went wrong');
       } finally {
         setIsLoading(false);
+        setProgress(null);
       }
     },
-    [includeArchived, token],
+    [hasToken, includeArchived, oauthSession.authenticated, token, tokenSource],
   );
 
   useEffect(() => {
@@ -208,10 +340,14 @@ export default function App() {
         <SearchBar
           onSearch={handleSearch}
           isLoading={isLoading}
-          hasToken={Boolean(token)}
+          hasToken={hasToken}
           includeArchived={includeArchived}
           onIncludeArchivedChange={setIncludeArchived}
           onTokenChange={setToken}
+          oauthAuthenticated={oauthSession.authenticated}
+          oauthLogin={oauthSession.login}
+          onOAuthLogout={handleOAuthLogout}
+          isAuthLoading={isAuthLoading}
           initialValue={initialUsername}
         />
       </section>

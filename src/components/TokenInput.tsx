@@ -40,7 +40,9 @@ export function TokenInput({ onTokenChange }: TokenInputProps) {
     setIsOpen(false);
     setIsValidating(false);
     trackAnalyticsEvent('token_saved', {
+      has_token: true,
       source: 'token_modal',
+      token_source: 'pat',
     });
     onTokenChange?.(inputValue);
   };
@@ -50,7 +52,9 @@ export function TokenInput({ onTokenChange }: TokenInputProps) {
     setToken(null);
     setInputValue('');
     trackAnalyticsEvent('token_removed', {
+      has_token: false,
       source: 'token_modal',
+      token_source: 'pat',
     });
     onTokenChange?.(null);
   };

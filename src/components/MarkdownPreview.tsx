@@ -329,6 +329,10 @@ function renderGfm(md: string): string {
     /\[!\[([^\]]*)\]\(([^)]+)\)\]\(([^)]+)\)/g,
     '<a href="$3" class="inline-block mr-1 mb-1"><img src="$2" alt="$1" class="inline h-5" /></a>',
   );
+  html = html.replace(
+    /!\[([^\]]*)\]\(([^)]+)\)/g,
+    '<img src="$2" alt="$1" class="inline h-5 mr-1 mb-1" />',
+  );
 
   // Links
   html = html.replace(

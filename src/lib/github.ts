@@ -425,10 +425,11 @@ function detectSkillsFromRepos(
       }
     }
 
-    // Fullstack hint: package.json means JavaScript/TypeScript are likely present.
+    // Fullstack hint: package.json means JS/TS ecosystem is likely present.
+    // We only unlock framework guards here; do not add JS/TS as language skills.
     if (hasPackageJson) {
       for (const lang of JS_TS_LANGUAGE_SKILLS) {
-        addLanguageSkill(lang);
+        repoLanguageSkills.add(lang);
       }
     }
 
@@ -717,6 +718,44 @@ function detectSkillsFromRepos(
         );
       }
     }
+  }
+
+  // Post-processing: Merge JavaScript & TypeScript
+  // For repos with both JS and TS, classify as JS if JS >= 20% of combined JS+TS
+  // This consolidates language detection and avoids duplicate tech labels
+  // Only apply when we have actual language breakdown data
+  const jsRepos = skillMap.get('JavaScript')?.repos ?? new Map();
+  const tsRepos = skillMap.get('TypeScript')?.repos ?? new Map();
+  const commonRepos = new Set(
+    [...jsRepos.keys()].filter(
+      (name) => tsRepos.has(name) && languageMaps.has(name),
+    ),
+  );
+
+  if (commonRepos.size > 0) {
+    for (const repoName of commonRepos) {
+      const langs = languageMaps.get(repoName);
+      if (!langs) continue; // Skip if no language data
+
+      let jsBytes = 0;
+      let tsBytes = 0;
+
+      // Find JS and TS bytes (case-insensitive keys)
+      for (const [lang, bytes] of Object.entries(langs)) {
+        const normalized = lang.toLowerCase();
+        if (normalized === 'javascript') jsBytes += bytes;
+        if (normalized === 'typescript') tsBytes += bytes;
+      }
+
+      const totalBytes = jsBytes + tsBytes;
+      if (totalBytes === 0) continue; // Skip if no JS/TS data
+
+      // Always keep TypeScript, remove JavaScript for mixed repos
+      jsRepos.delete(repoName);
+    }
+
+    // Clean up empty entries
+    if (jsRepos.size === 0) skillMap.delete('JavaScript');
   }
 
   return skillMap;

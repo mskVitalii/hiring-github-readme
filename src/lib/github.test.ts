@@ -78,7 +78,27 @@ describe('fullstack package.json hint', () => {
       new Map([[repo.name, ['package.json']]]),
     );
     expect(withPackageJson.has('Next.js')).toBe(true);
-    expect(withPackageJson.has('JavaScript')).toBe(true);
-    expect(withPackageJson.has('TypeScript')).toBe(true);
+  });
+
+  it('keeps TypeScript and removes JavaScript for mixed TS/JS repos with language breakdown', () => {
+    const repo = makeRepo('ts-app', 'JavaScript', [], null);
+
+    const skillMap = __testables.detectSkillsFromRepos(
+      [repo],
+      new Map([
+        [
+          repo.name,
+          {
+            TypeScript: 857,
+            Astro: 128,
+            JavaScript: 15,
+          },
+        ],
+      ]),
+      new Map([[repo.name, ['package.json']]]),
+    );
+
+    expect(skillMap.has('TypeScript')).toBe(true);
+    expect(skillMap.has('JavaScript')).toBe(false);
   });
 });

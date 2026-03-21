@@ -191,6 +191,9 @@ export default function App() {
   const [initialUsername, setInitialUsername] = useState('');
   const [hasAutoScanned, setHasAutoScanned] = useState(false);
   const [consent, setConsent] = useState<AnalyticsConsent>(null);
+  const [shareStatus, setShareStatus] = useState<'idle' | 'copied' | 'shared'>(
+    'idle',
+  );
 
   const tokenSource = getTokenSource(token, oauthSession);
   const hasToken = tokenSource !== 'none';
@@ -322,6 +325,61 @@ export default function App() {
     void handleSearch(initialUsername);
   }, [handleSearch, hasAutoScanned, initialUsername, isHydrated]);
 
+  const handleRecommendApp = useCallback(async () => {
+    if (typeof window === 'undefined') return;
+
+    const basePath = (window.__BASE_URL__ || '/').replace(/\/?$/, '/');
+    const shareUrl = new URL(basePath, window.location.origin);
+    shareUrl.searchParams.set('utm_source', 'friend_share');
+    shareUrl.searchParams.set('utm_medium', 'referral');
+    shareUrl.searchParams.set('utm_campaign', 'recommend_app');
+
+    const shareUrlString = shareUrl.toString();
+    const shareMessage = `Generate a tech-stack README from your GitHub profile.\n\n${shareUrlString}`;
+
+    try {
+      if (typeof navigator.share === 'function') {
+        await navigator.share({
+          title: 'GitHub Skills Scanner',
+          text: shareMessage,
+          url: shareUrlString,
+        });
+        setShareStatus('shared');
+        trackAnalyticsEvent('app_recommended', {
+          method: 'share',
+          share_url: shareUrlString,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrlString);
+        setShareStatus('copied');
+        trackAnalyticsEvent('app_recommended', {
+          method: 'copy',
+          share_url: shareUrlString,
+        });
+      }
+
+      window.setTimeout(() => setShareStatus('idle'), 2500);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(shareUrlString);
+        setShareStatus('copied');
+        trackAnalyticsEvent('app_recommended', {
+          method: 'copy_fallback',
+          share_url: shareUrlString,
+        });
+        window.setTimeout(() => setShareStatus('idle'), 2500);
+      } catch {
+        trackAnalyticsEvent('app_recommend_failed', {
+          share_url: shareUrlString,
+        });
+      }
+    }
+  }, []);
+
   return (
     <main className='min-h-screen flex flex-col'>
       {/* Header */}
@@ -423,6 +481,17 @@ export default function App() {
             Star it on GitHub
           </a>
           .
+        </p>
+        <p>
+          <button
+            type='button'
+            onClick={() => void handleRecommendApp()}
+            className='text-gh-accent underline underline-offset-2 decoration-1 hover:decoration-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gh-accent/70 rounded-sm'
+          >
+            {shareStatus === 'idle' && 'Recommend to a friend'}
+            {shareStatus === 'copied' && 'Link copied'}
+            {shareStatus === 'shared' && 'Shared'}
+          </button>
         </p>
         <p className='flex items-center justify-center gap-3'>
           <a

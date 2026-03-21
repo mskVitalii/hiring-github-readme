@@ -5,6 +5,18 @@ interface Props {
   categories: SkillCategory[];
 }
 
+const SKILL_EMOJIS: Record<string, string> = {
+  PostgreSQL: '🐘',
+  MySQL: '🐬',
+  MongoDB: '🍃',
+  Redis: '🧠',
+  SQLite: '🧩',
+  Elasticsearch: '🔎',
+  DynamoDB: '⚡',
+  Firebase: '🔥',
+  Supabase: '⚡',
+};
+
 export default function SkillsList({ categories }: Props) {
   const scrollToSkill = (skillName: string) => {
     const anchor = skillName
@@ -31,6 +43,7 @@ export default function SkillsList({ categories }: Props) {
                 onClick={() => scrollToSkill(skill.name)}
                 className='inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border border-gh-border bg-gh-bg-secondary text-gh-text hover:border-gh-accent hover:text-gh-accent transition-colors cursor-pointer'
               >
+                {SKILL_EMOJIS[skill.name] ? `${SKILL_EMOJIS[skill.name]} ` : ''}
                 {skill.name}
                 <span className='text-xs text-gh-text-secondary'>
                   {skill.repos.length}

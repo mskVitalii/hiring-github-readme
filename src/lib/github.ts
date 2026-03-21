@@ -13,6 +13,7 @@ const API_BASE = 'https://api.github.com';
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 const TOKEN_LANG_CONCURRENCY = 12;
 const TOKEN_TREE_CONCURRENCY = 8;
+const TOKEN_COMPOSE_CONCURRENCY = 6;
 
 interface CacheEntry<T> {
   data: T;
@@ -321,11 +322,138 @@ async function fetchRepoTreePaths(
   }
 }
 
+type GitHubFileContent = {
+  content?: string;
+  encoding?: string;
+};
+
+function decodeBase64Utf8(value: string): string {
+  const clean = value.replace(/\n/g, '');
+
+  if (typeof atob === 'function') {
+    return atob(clean);
+  }
+
+  if (typeof Buffer !== 'undefined') {
+    return Buffer.from(clean, 'base64').toString('utf8');
+  }
+
+  return '';
+}
+
+function isComposeFilePath(path: string): boolean {
+  return /(^|\/)(docker-)?compose([.-][a-z0-9_-]+)?\.ya?ml$/i.test(path);
+}
+
+function getComposeFileCandidates(paths: string[]): string[] {
+  return paths
+    .filter((p) => isComposeFilePath(p))
+    .sort((a, b) => a.split('/').length - b.split('/').length)
+    .slice(0, 3);
+}
+
+async function fetchRepoFileContent(
+  owner: string,
+  repo: string,
+  path: string,
+  token?: string,
+): Promise<string | null> {
+  const cacheKey = `gh_file_${owner}_${repo}_${path}`;
+  const cached = getCached<string>(cacheKey);
+  if (cached) return cached;
+
+  try {
+    const encodedPath = path
+      .split('/')
+      .map((part) => encodeURIComponent(part))
+      .join('/');
+
+    const file = await ghFetch<GitHubFileContent>(
+      `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodedPath}`,
+      token,
+    );
+
+    if (file.encoding !== 'base64' || !file.content) return null;
+
+    const decoded = decodeBase64Utf8(file.content);
+    if (!decoded) return null;
+
+    setCache(cacheKey, decoded);
+    return decoded;
+  } catch {
+    return null;
+  }
+}
+
+function detectSkillsFromComposeContent(content: string): string[] {
+  const text = content.toLowerCase();
+  const skills = new Set<string>();
+
+  // compose files are a strong Docker signal
+  skills.add('Docker');
+
+  if (/\b(postgres|postgresql|timescaledb)\b/.test(text)) {
+    skills.add('PostgreSQL');
+  }
+  if (/\b(mysql|mariadb|percona)\b/.test(text)) {
+    skills.add('MySQL');
+  }
+  if (/\b(mongo|mongodb)\b/.test(text)) {
+    skills.add('MongoDB');
+  }
+  if (/\b(redis|valkey)\b/.test(text)) {
+    skills.add('Redis');
+  }
+  if (/\b(elasticsearch|opensearch)\b/.test(text)) {
+    skills.add('Elasticsearch');
+  }
+  if (/\brabbitmq\b/.test(text)) {
+    skills.add('RabbitMQ');
+  }
+  if (/\b(kafka|redpanda)\b/.test(text)) {
+    skills.add('Kafka');
+  }
+  if (/\b(prometheus)\b/.test(text)) {
+    skills.add('Prometheus');
+  }
+  if (/\b(grafana)\b/.test(text)) {
+    skills.add('Grafana');
+  }
+  if (/\bnginx\b/.test(text)) {
+    skills.add('Nginx');
+  }
+
+  return [...skills];
+}
+
+async function fetchComposeSkillsForRepo(
+  owner: string,
+  repo: string,
+  paths: string[],
+  token?: string,
+): Promise<string[]> {
+  const composeFiles = getComposeFileCandidates(paths);
+  if (composeFiles.length === 0) return [];
+
+  const skills = new Set<string>();
+  for (const composePath of composeFiles) {
+    const content = await fetchRepoFileContent(owner, repo, composePath, token);
+    if (!content) continue;
+
+    for (const skill of detectSkillsFromComposeContent(content)) {
+      skills.add(skill);
+    }
+  }
+
+  return [...skills];
+}
+
 /** Detect skills from a set of repos */
 function detectSkillsFromRepos(
   repos: GitHubRepo[],
   languageMaps: Map<string, RepoLanguages>,
   rootFilesMap: Map<string, string[]>,
+  composeSkillsMap: Map<string, string[]> = new Map(),
 ): Map<
   string,
   {
@@ -718,6 +846,21 @@ function detectSkillsFromRepos(
         );
       }
     }
+
+    // 5. Detect from compose.yaml/docker-compose.yml contents
+    const composeSkills = composeSkillsMap.get(repo.name) ?? [];
+    for (const skillName of composeSkills) {
+      addSkill(
+        skillName,
+        repo.name,
+        repo.html_url,
+        repo.homepage,
+        repo.topics,
+        repo.stargazers_count,
+        repo.updated_at,
+        repo.archived,
+      );
+    }
   }
 
   // Post-processing: Merge JavaScript & TypeScript
@@ -764,6 +907,7 @@ function detectSkillsFromRepos(
 export const __testables = {
   detectSkillsFromRepos,
   isSkillCompatibleWithLanguages,
+  detectSkillsFromComposeContent,
 };
 
 /** Organize detected skills into categories */
@@ -983,8 +1127,31 @@ export async function scanUser(
     rootFilesMap.set(repo, files);
   });
 
+  // Fetch and analyze compose files for infra/database hints.
+  const composeSkillsMap = new Map<string, string[]>();
+  const composeTasks = treeRepos.map((repo) => async () => {
+    const files = rootFilesMap.get(repo.name) ?? [];
+    const skills = await fetchComposeSkillsForRepo(
+      username,
+      repo.name,
+      files,
+      token,
+    );
+    return { repo: repo.name, skills };
+  });
+
+  const composeResults = await pLimit(composeTasks, TOKEN_COMPOSE_CONCURRENCY);
+  composeResults.forEach(({ repo, skills }) => {
+    if (skills.length > 0) composeSkillsMap.set(repo, skills);
+  });
+
   onProgress?.({ phase: 'analyzing' });
-  const skillMap = detectSkillsFromRepos(repos, languageMaps, rootFilesMap);
+  const skillMap = detectSkillsFromRepos(
+    repos,
+    languageMaps,
+    rootFilesMap,
+    composeSkillsMap,
+  );
   const categories = categorizeSkills(skillMap);
 
   onProgress?.({ phase: 'done' });

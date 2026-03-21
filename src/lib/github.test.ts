@@ -102,3 +102,40 @@ describe('fullstack package.json hint', () => {
     expect(skillMap.has('JavaScript')).toBe(false);
   });
 });
+
+describe('compose.yaml detection', () => {
+  it('detects infrastructure/database skills from compose content', () => {
+    const skills = __testables.detectSkillsFromComposeContent(`
+services:
+  db:
+    image: postgres:16
+  cache:
+    image: redis:7
+  search:
+    image: opensearchproject/opensearch:latest
+  mq:
+    image: rabbitmq:3-management
+`);
+
+    expect(skills).toContain('Docker');
+    expect(skills).toContain('PostgreSQL');
+    expect(skills).toContain('Redis');
+    expect(skills).toContain('Elasticsearch');
+    expect(skills).toContain('RabbitMQ');
+  });
+
+  it('adds compose-derived skills into repo skill map', () => {
+    const repo = makeRepo('infra-app', 'TypeScript');
+
+    const skillMap = __testables.detectSkillsFromRepos(
+      [repo],
+      new Map(),
+      new Map(),
+      new Map([[repo.name, ['PostgreSQL', 'MongoDB', 'Redis']]]),
+    );
+
+    expect(skillMap.has('PostgreSQL')).toBe(true);
+    expect(skillMap.has('MongoDB')).toBe(true);
+    expect(skillMap.has('Redis')).toBe(true);
+  });
+});

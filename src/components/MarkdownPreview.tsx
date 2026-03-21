@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { trackAnalyticsEvent } from '../lib/analytics';
+import type { ProjectSortMode } from '../lib/markdown';
 import { generateMarkdown } from '../lib/markdown';
 import type { ScanResult } from '../lib/types';
 
@@ -19,6 +20,8 @@ export default function MarkdownPreview({ result }: Props) {
   const [showDemo, setShowDemo] = useState(true);
   const [showArchived, setShowArchived] = useState(true);
   const [showTopics, setShowTopics] = useState(true);
+  const [projectSortMode, setProjectSortMode] =
+    useState<ProjectSortMode>('composite');
 
   const markdown = useMemo(
     () =>
@@ -27,8 +30,9 @@ export default function MarkdownPreview({ result }: Props) {
         showDemo,
         showArchived,
         showTopics,
+        projectSortMode,
       }),
-    [result, showArchived, showDemo, showStars, showTopics],
+    [result, projectSortMode, showArchived, showDemo, showStars, showTopics],
   );
 
   const checkProfileReadmeRepo = async () => {
@@ -70,6 +74,7 @@ export default function MarkdownPreview({ result }: Props) {
       show_demo: showDemo,
       show_archived: showArchived,
       show_topics: showTopics,
+      project_sort_mode: projectSortMode,
       markdown_length: markdown.length,
     });
     setCopied(true);
@@ -149,6 +154,22 @@ export default function MarkdownPreview({ result }: Props) {
               className='h-4 w-4 rounded border-gh-border bg-gh-bg text-gh-accent focus:ring-gh-accent'
             />
             Topics
+          </label>
+
+          <label className='inline-flex items-center gap-2 text-xs text-gh-text-secondary select-none'>
+            Sort
+            <select
+              value={projectSortMode}
+              onChange={(e) =>
+                setProjectSortMode(e.target.value as ProjectSortMode)
+              }
+              className='h-7 rounded border border-gh-border bg-gh-bg px-2 text-xs text-gh-text focus:outline-none focus:ring-1 focus:ring-gh-accent'
+            >
+              <option value='composite'>Demo -&gt; Stars -&gt; Date</option>
+              <option value='stars'>Stars</option>
+              <option value='updated'>Last commit date</option>
+              <option value='demo'>Demo</option>
+            </select>
           </label>
         </div>
         <button

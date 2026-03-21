@@ -6,6 +6,49 @@ export interface MarkdownOptions {
   showDemo?: boolean;
   showArchived?: boolean;
   showTopics?: boolean;
+  projectSortMode?: ProjectSortMode;
+}
+
+export type ProjectSortMode = 'composite' | 'stars' | 'updated' | 'demo';
+
+type RepoView = {
+  repoName: string;
+  repoUrl: string;
+  homepage: string | null;
+  topics: string[];
+  stars: number;
+  updatedAt: string;
+  archived: boolean;
+};
+
+function compareRepos(a: RepoView, b: RepoView, mode: ProjectSortMode): number {
+  const demoDiff = Number(Boolean(b.homepage)) - Number(Boolean(a.homepage));
+  const starsDiff = b.stars - a.stars;
+  const updatedDiff =
+    new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+
+  if (mode === 'demo') {
+    if (demoDiff !== 0) return demoDiff;
+    if (starsDiff !== 0) return starsDiff;
+    return updatedDiff;
+  }
+
+  if (mode === 'stars') {
+    if (starsDiff !== 0) return starsDiff;
+    if (updatedDiff !== 0) return updatedDiff;
+    return demoDiff;
+  }
+
+  if (mode === 'updated') {
+    if (updatedDiff !== 0) return updatedDiff;
+    if (starsDiff !== 0) return starsDiff;
+    return demoDiff;
+  }
+
+  // Default composite: demo -> stars -> updated
+  if (demoDiff !== 0) return demoDiff;
+  if (starsDiff !== 0) return starsDiff;
+  return updatedDiff;
 }
 
 const FRAMEWORK_LANGUAGE_MAP: Record<string, string> = {
@@ -233,6 +276,7 @@ export function generateMarkdown(
   const showDemo = options.showDemo ?? true;
   const showArchived = options.showArchived ?? true;
   const showTopics = options.showTopics ?? true;
+  const projectSortMode = options.projectSortMode ?? 'composite';
   const lines: string[] = [];
 
   // Header
@@ -272,12 +316,7 @@ export function generateMarkdown(
         archived: skill.repoArchived[i] ?? false,
       }));
 
-      repos.sort((a, b) => {
-        const updatedDiff =
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-        if (updatedDiff !== 0) return updatedDiff;
-        return b.stars - a.stars;
-      });
+      repos.sort((a, b) => compareRepos(a, b, projectSortMode));
 
       for (const repo of repos) {
         let line = `- [${repo.repoName}](${repo.repoUrl})`;

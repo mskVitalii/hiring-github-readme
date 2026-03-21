@@ -7,13 +7,18 @@ export interface MarkdownOptions {
   showArchived?: boolean;
   showTopics?: boolean;
   projectSortMode?: ProjectSortMode;
+  showDescription?: boolean;
+  projectLayout?: ProjectLayoutMode;
+  includedRepoNames?: string[];
 }
 
 export type ProjectSortMode = 'composite' | 'stars' | 'updated' | 'demo';
+export type ProjectLayoutMode = 'list' | 'table';
 
 type RepoView = {
   repoName: string;
   repoUrl: string;
+  description: string | null;
   homepage: string | null;
   topics: string[];
   stars: number;
@@ -49,6 +54,17 @@ function compareRepos(a: RepoView, b: RepoView, mode: ProjectSortMode): number {
   if (demoDiff !== 0) return demoDiff;
   if (starsDiff !== 0) return starsDiff;
   return updatedDiff;
+}
+
+function formatUpdatedDate(value: string): string {
+  if (!value) return '-';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return '-';
+  return parsed.toISOString().slice(0, 10);
+}
+
+function escapeTableCell(value: string): string {
+  return value.replace(/\|/g, '\\|').replace(/\n+/g, ' ').trim();
 }
 
 const FRAMEWORK_LANGUAGE_MAP: Record<string, string> = {
@@ -277,7 +293,53 @@ export function generateMarkdown(
   const showArchived = options.showArchived ?? true;
   const showTopics = options.showTopics ?? true;
   const projectSortMode = options.projectSortMode ?? 'composite';
+  const showDescription = options.showDescription ?? false;
+  const projectLayout = options.projectLayout ?? 'list';
+  const includedRepoSet = options.includedRepoNames
+    ? new Set(options.includedRepoNames)
+    : null;
   const lines: string[] = [];
+
+  const filteredCategories = categories
+    .map((category) => {
+      const filteredSkills = category.skills
+        .map((skill) => {
+          const keptIndices = skill.repos
+            .map((repoName, index) => ({ repoName, index }))
+            .filter(
+              ({ repoName }) =>
+                !includedRepoSet || includedRepoSet.has(repoName),
+            )
+            .map(({ index }) => index);
+
+          if (keptIndices.length === 0) return null;
+
+          return {
+            ...skill,
+            repos: keptIndices.map((i) => skill.repos[i]),
+            repoUrls: keptIndices.map((i) => skill.repoUrls[i]),
+            repoDescriptions: keptIndices.map(
+              (i) => skill.repoDescriptions[i] ?? null,
+            ),
+            repoHomepages: keptIndices.map((i) => skill.repoHomepages[i]),
+            repoTopics: keptIndices.map((i) => skill.repoTopics[i] ?? []),
+            repoStars: keptIndices.map((i) => skill.repoStars[i] ?? 0),
+            repoUpdatedAt: keptIndices.map((i) => skill.repoUpdatedAt[i] ?? ''),
+            repoArchived: keptIndices.map(
+              (i) => skill.repoArchived[i] ?? false,
+            ),
+          };
+        })
+        .filter((skill): skill is (typeof category.skills)[number] =>
+          Boolean(skill),
+        );
+
+      return {
+        ...category,
+        skills: filteredSkills,
+      };
+    })
+    .filter((category) => category.skills.length > 0);
 
   // Header
   lines.push(`# Tech Stack`);
@@ -286,7 +348,7 @@ export function generateMarkdown(
   // Category summary with grouped skill badges
   lines.push('## Skills by Category');
   lines.push('');
-  for (const category of categories) {
+  for (const category of filteredCategories) {
     lines.push(`### ${categoryDisplayName(category.name)}`);
     const badges = category.skills.map(
       (skill) =>
@@ -297,7 +359,7 @@ export function generateMarkdown(
   }
 
   // Detailed sections per category
-  for (const category of categories) {
+  for (const category of filteredCategories) {
     lines.push(`## ${categoryDisplayName(category.name)}`);
     lines.push('');
 
@@ -309,6 +371,7 @@ export function generateMarkdown(
       const repos = skill.repos.map((repoName, i) => ({
         repoName,
         repoUrl: skill.repoUrls[i],
+        description: skill.repoDescriptions[i] ?? null,
         homepage: skill.repoHomepages[i],
         topics: skill.repoTopics[i] ?? [],
         stars: skill.repoStars[i] ?? 0,
@@ -317,6 +380,60 @@ export function generateMarkdown(
       }));
 
       repos.sort((a, b) => compareRepos(a, b, projectSortMode));
+
+      if (projectLayout === 'table') {
+        const headers = ['Repository'];
+        if (showDescription) headers.push('Description');
+        if (showStars) headers.push('Stars');
+        if (showDemo) headers.push('Demo');
+        if (showArchived) headers.push('Archived');
+        if (showTopics) headers.push('Topics');
+
+        lines.push(`| ${headers.join(' | ')} |`);
+        lines.push(`| ${headers.map(() => '---').join(' | ')} |`);
+
+        for (const repo of repos) {
+          const cells: string[] = [
+            `[${escapeTableCell(repo.repoName)}](${repo.repoUrl})`,
+          ];
+
+          if (showDescription) {
+            cells.push(
+              repo.description?.trim()
+                ? escapeTableCell(repo.description)
+                : '-',
+            );
+          }
+
+          if (showStars) {
+            cells.push(String(repo.stars ?? 0));
+          }
+
+          if (showDemo) {
+            cells.push(repo.homepage ? `[live](${repo.homepage})` : '-');
+          }
+
+          if (showArchived) {
+            cells.push(repo.archived ? 'yes' : '-');
+          }
+
+          if (showTopics) {
+            const topics = repo.topics
+              .filter(Boolean)
+              .slice(0, 6)
+              .map(
+                (topic) =>
+                  `[![${topic}](${topicBadgeUrl(topic)})](${getTopicLink(topic, repo.repoUrl)})`,
+              );
+            cells.push(topics.length > 0 ? topics.join(' ') : '-');
+          }
+
+          lines.push(`| ${cells.join(' | ')} |`);
+        }
+
+        lines.push('');
+        continue;
+      }
 
       for (const repo of repos) {
         let line = `- [${repo.repoName}](${repo.repoUrl})`;
@@ -330,6 +447,10 @@ export function generateMarkdown(
           line += ` [![demo](https://img.shields.io/badge/demo-live-2ea043?style=flat-square)](${repo.homepage})`;
         }
         lines.push(line);
+
+        if (showDescription && repo.description?.trim()) {
+          lines.push(`  ${repo.description.trim()}`);
+        }
 
         if (showTopics) {
           const topics = repo.topics

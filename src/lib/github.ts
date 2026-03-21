@@ -461,6 +461,7 @@ function detectSkillsFromRepos(
       string,
       {
         url: string;
+        description: string | null;
         homepage: string | null;
         stars: number;
         updatedAt: string;
@@ -477,6 +478,7 @@ function detectSkillsFromRepos(
         string,
         {
           url: string;
+          description: string | null;
           homepage: string | null;
           stars: number;
           updatedAt: string;
@@ -486,6 +488,10 @@ function detectSkillsFromRepos(
       >;
     }
   >();
+
+  const repoDescriptionByName = new Map(
+    repos.map((repo) => [repo.name, repo.description ?? null]),
+  );
 
   const addSkill = (
     skillName: string,
@@ -504,6 +510,7 @@ function detectSkillsFromRepos(
     if (!entry.repos.has(repoName)) {
       entry.repos.set(repoName, {
         url: repoUrl,
+        description: repoDescriptionByName.get(repoName) ?? null,
         homepage,
         topics,
         stars,
@@ -919,6 +926,7 @@ function categorizeSkills(
         string,
         {
           url: string;
+          description: string | null;
           homepage: string | null;
           topics: string[];
           stars: number;
@@ -942,6 +950,7 @@ function categorizeSkills(
           name: skillName,
           repos: repoEntries.map(([name]) => name),
           repoUrls: repoEntries.map(([, info]) => info.url),
+          repoDescriptions: repoEntries.map(([, info]) => info.description),
           repoHomepages: repoEntries.map(([, info]) => info.homepage),
           repoTopics: repoEntries.map(([, info]) => info.topics),
           repoStars: repoEntries.map(([, info]) => info.stars),
@@ -969,6 +978,7 @@ function categorizeSkills(
         name: skillName,
         repos: repoEntries.map(([name]) => name),
         repoUrls: repoEntries.map(([, info]) => info.url),
+        repoDescriptions: repoEntries.map(([, info]) => info.description),
         repoHomepages: repoEntries.map(([, info]) => info.homepage),
         repoTopics: repoEntries.map(([, info]) => info.topics),
         repoStars: repoEntries.map(([, info]) => info.stars),

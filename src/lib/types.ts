@@ -34,6 +34,7 @@ export interface Skill {
   name: string;
   repos: string[];
   repoUrls: string[];
+  repoDescriptions: (string | null)[];
   repoHomepages: (string | null)[];
   repoTopics: string[][];
   repoStars: number[];

@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { trackAnalyticsEvent } from '../lib/analytics';
-import type { ProjectSortMode } from '../lib/markdown';
+import type { ProjectLayoutMode, ProjectSortMode } from '../lib/markdown';
 import { generateMarkdown } from '../lib/markdown';
 import type { ScanResult } from '../lib/types';
 
@@ -20,8 +20,47 @@ export default function MarkdownPreview({ result }: Props) {
   const [showDemo, setShowDemo] = useState(true);
   const [showArchived, setShowArchived] = useState(true);
   const [showTopics, setShowTopics] = useState(true);
+  const [showDescription, setShowDescription] = useState(false);
+  const [projectLayout, setProjectLayout] = useState<ProjectLayoutMode>('list');
   const [projectSortMode, setProjectSortMode] =
     useState<ProjectSortMode>('composite');
+  const [excludedRepos, setExcludedRepos] = useState<Set<string>>(new Set());
+
+  const allProjects = useMemo(() => {
+    const projects = new Map<
+      string,
+      { name: string; url: string; stars: number }
+    >();
+
+    for (const category of result.categories) {
+      for (const skill of category.skills) {
+        for (let i = 0; i < skill.repos.length; i++) {
+          const name = skill.repos[i];
+          const url = skill.repoUrls[i] ?? '';
+          const stars = skill.repoStars[i] ?? 0;
+          const existing = projects.get(name);
+          if (!existing || stars > existing.stars) {
+            projects.set(name, { name, url, stars });
+          }
+        }
+      }
+    }
+
+    return [...projects.values()].sort(
+      (a, b) => b.stars - a.stars || a.name.localeCompare(b.name),
+    );
+  }, [result]);
+
+  useEffect(() => {
+    setExcludedRepos(new Set());
+  }, [result]);
+
+  const includedRepoNames = useMemo(() => {
+    if (excludedRepos.size === 0) return undefined;
+    return allProjects
+      .filter((project) => !excludedRepos.has(project.name))
+      .map((project) => project.name);
+  }, [allProjects, excludedRepos]);
 
   const markdown = useMemo(
     () =>
@@ -30,9 +69,22 @@ export default function MarkdownPreview({ result }: Props) {
         showDemo,
         showArchived,
         showTopics,
+        showDescription,
         projectSortMode,
+        projectLayout,
+        includedRepoNames,
       }),
-    [result, projectSortMode, showArchived, showDemo, showStars, showTopics],
+    [
+      includedRepoNames,
+      projectLayout,
+      result,
+      projectSortMode,
+      showArchived,
+      showDemo,
+      showDescription,
+      showStars,
+      showTopics,
+    ],
   );
 
   const checkProfileReadmeRepo = async () => {
@@ -74,7 +126,10 @@ export default function MarkdownPreview({ result }: Props) {
       show_demo: showDemo,
       show_archived: showArchived,
       show_topics: showTopics,
+      show_description: showDescription,
       project_sort_mode: projectSortMode,
+      project_layout: projectLayout,
+      selected_projects_count: allProjects.length - excludedRepos.size,
       markdown_length: markdown.length,
     });
     setCopied(true);
@@ -88,8 +143,80 @@ export default function MarkdownPreview({ result }: Props) {
   const profileReadmeEditUrl = `${profileReadmeRepoUrl}/edit/main/README.md`;
   const createProfileRepoUrl = `https://github.com/new?name=${encodeURIComponent(result.user.login)}&description=${encodeURIComponent('GitHub profile README')}`;
 
+  const toggleRepo = (repoName: string, enabled: boolean) => {
+    setExcludedRepos((prev) => {
+      const next = new Set(prev);
+      if (enabled) {
+        next.delete(repoName);
+      } else {
+        next.add(repoName);
+      }
+      return next;
+    });
+  };
+
+  const setAllReposEnabled = (enabled: boolean) => {
+    if (enabled) {
+      setExcludedRepos(new Set());
+      return;
+    }
+    setExcludedRepos(new Set(allProjects.map((project) => project.name)));
+  };
+
   return (
     <div className='w-full max-w-3xl mx-auto'>
+      <div className='mb-3 border border-gh-border rounded-lg bg-gh-bg-secondary px-4 py-3'>
+        <div className='flex items-center justify-between mb-2'>
+          <h3 className='text-sm font-semibold text-gh-text'>
+            Projects for Markdown
+          </h3>
+          <div className='flex gap-2'>
+            <button
+              onClick={() => setAllReposEnabled(true)}
+              className='px-2 py-1 rounded text-xs border border-gh-border text-gh-text-secondary hover:text-gh-text hover:border-gh-accent transition-colors cursor-pointer'
+            >
+              Enable all
+            </button>
+            <button
+              onClick={() => setAllReposEnabled(false)}
+              className='px-2 py-1 rounded text-xs border border-gh-border text-gh-text-secondary hover:text-gh-text hover:border-gh-accent transition-colors cursor-pointer'
+            >
+              Disable all
+            </button>
+          </div>
+        </div>
+
+        <p className='text-xs text-gh-text-secondary mb-2'>
+          Enabled {allProjects.length - excludedRepos.size} of{' '}
+          {allProjects.length}
+        </p>
+
+        <div className='max-h-44 overflow-auto rounded border border-gh-border bg-gh-bg p-2 space-y-1'>
+          {allProjects.map((project) => {
+            const enabled = !excludedRepos.has(project.name);
+            return (
+              <label
+                key={project.name}
+                className='flex items-center justify-between gap-3 text-sm text-gh-text py-1'
+              >
+                <span className='truncate'>{project.name}</span>
+                <span className='inline-flex items-center gap-2 shrink-0'>
+                  <span className='text-xs text-gh-text-secondary'>
+                    ★ {project.stars}
+                  </span>
+                  <input
+                    type='checkbox'
+                    checked={enabled}
+                    onChange={(e) => toggleRepo(project.name, e.target.checked)}
+                    className='h-4 w-4 rounded border-gh-border bg-gh-bg text-gh-accent focus:ring-gh-accent'
+                  />
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Toolbar */}
       <div className='flex items-center justify-between border border-gh-border rounded-t-lg bg-gh-bg-secondary px-4 py-2'>
         <div className='flex items-center gap-3 flex-wrap'>
@@ -157,6 +284,16 @@ export default function MarkdownPreview({ result }: Props) {
           </label>
 
           <label className='inline-flex items-center gap-2 text-xs text-gh-text-secondary select-none'>
+            <input
+              type='checkbox'
+              checked={showDescription}
+              onChange={(e) => setShowDescription(e.target.checked)}
+              className='h-4 w-4 rounded border-gh-border bg-gh-bg text-gh-accent focus:ring-gh-accent'
+            />
+            Description
+          </label>
+
+          <label className='inline-flex items-center gap-2 text-xs text-gh-text-secondary select-none'>
             Sort
             <select
               value={projectSortMode}
@@ -170,6 +307,18 @@ export default function MarkdownPreview({ result }: Props) {
               <option value='updated'>Last commit date</option>
               <option value='demo'>Demo</option>
             </select>
+          </label>
+
+          <label className='inline-flex items-center gap-2 text-xs text-gh-text-secondary select-none'>
+            <input
+              type='checkbox'
+              checked={projectLayout === 'table'}
+              onChange={(e) =>
+                setProjectLayout(e.target.checked ? 'table' : 'list')
+              }
+              className='h-4 w-4 rounded border-gh-border bg-gh-bg text-gh-accent focus:ring-gh-accent'
+            />
+            Table layout (experimental)
           </label>
         </div>
         <button
@@ -318,6 +467,76 @@ function toAnchor(name: string): string {
     .replace(/(^-|-$)/g, '');
 }
 
+function isTableSeparatorLine(line: string): boolean {
+  return /^\s*\|?(\s*:?-{3,}:?\s*\|)+\s*:?-{3,}:?\s*\|?\s*$/.test(line);
+}
+
+function splitTableRow(line: string): string[] {
+  return line
+    .trim()
+    .replace(/^\|/, '')
+    .replace(/\|$/, '')
+    .split('|')
+    .map((cell) => cell.trim());
+}
+
+function renderTables(html: string): string {
+  const lines = html.split('\n');
+  const out: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const nextLine = lines[i + 1] ?? '';
+
+    if (line.includes('|') && isTableSeparatorLine(nextLine)) {
+      const headers = splitTableRow(line);
+      const rows: string[][] = [];
+      i += 2;
+
+      while (i < lines.length) {
+        const rowLine = lines[i];
+        if (
+          !rowLine.trim() ||
+          !rowLine.includes('|') ||
+          rowLine.startsWith('<')
+        ) {
+          break;
+        }
+        rows.push(splitTableRow(rowLine));
+        i++;
+      }
+      i--;
+
+      const thead = `<thead><tr>${headers
+        .map(
+          (h) =>
+            `<th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gh-text-secondary border border-gh-border">${h}</th>`,
+        )
+        .join('')}</tr></thead>`;
+      const tbody = `<tbody>${rows
+        .map(
+          (row) =>
+            `<tr>${row
+              .map(
+                (cell) =>
+                  `<td class="px-3 py-2 align-top text-sm text-gh-text border border-gh-border">${cell || '-'}</td>`,
+              )
+              .join('')}</tr>`,
+        )
+        .join('')}</tbody>`;
+
+      out.push(
+        `<div class="my-3 overflow-x-auto"><table class="w-full border-collapse">${thead}${tbody}</table></div>`,
+      );
+      continue;
+    }
+
+    out.push(line);
+  }
+
+  return out.join('\n');
+}
+
 function renderGfm(md: string): string {
   let html = escapeHtml(md);
 
@@ -366,6 +585,9 @@ function renderGfm(md: string): string {
 
   // Italic
   html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+  // Markdown tables
+  html = renderTables(html);
 
   // List items
   html = html.replace(

@@ -290,8 +290,8 @@ export function generateMarkdown(
   const { categories } = result;
   const showStars = options.showStars ?? true;
   const showDemo = options.showDemo ?? true;
-  const showArchived = options.showArchived ?? true;
-  const showTopics = options.showTopics ?? true;
+  const showArchived = options.showArchived ?? false;
+  const showTopics = options.showTopics ?? false;
   const projectSortMode = options.projectSortMode ?? 'composite';
   const showDescription = options.showDescription ?? false;
   const projectLayout = options.projectLayout ?? 'list';
@@ -446,11 +446,11 @@ export function generateMarkdown(
         if (showDemo && repo.homepage) {
           line += ` [![demo](https://img.shields.io/badge/demo-live-2ea043?style=flat-square)](${repo.homepage})`;
         }
-        lines.push(line);
-
         if (showDescription && repo.description?.trim()) {
-          lines.push(`  ${repo.description.trim()}`);
+          line += ` - ${repo.description.trim().replace(/\s+/g, ' ')}`;
         }
+
+        lines.push(line);
 
         if (showTopics) {
           const topics = repo.topics

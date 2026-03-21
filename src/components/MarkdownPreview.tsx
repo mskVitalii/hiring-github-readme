@@ -18,8 +18,8 @@ export default function MarkdownPreview({ result }: Props) {
   const [tab, setTab] = useState<'preview' | 'raw'>('preview');
   const [showStars, setShowStars] = useState(true);
   const [showDemo, setShowDemo] = useState(true);
-  const [showArchived, setShowArchived] = useState(true);
-  const [showTopics, setShowTopics] = useState(true);
+  const [showArchived, setShowArchived] = useState(false);
+  const [showTopics, setShowTopics] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
   const [projectLayout, setProjectLayout] = useState<ProjectLayoutMode>('list');
   const [projectSortMode, setProjectSortMode] =
@@ -310,15 +310,21 @@ export default function MarkdownPreview({ result }: Props) {
           </label>
 
           <label className='inline-flex items-center gap-2 text-xs text-gh-text-secondary select-none'>
-            <input
-              type='checkbox'
-              checked={projectLayout === 'table'}
-              onChange={(e) =>
-                setProjectLayout(e.target.checked ? 'table' : 'list')
-              }
-              className='h-4 w-4 rounded border-gh-border bg-gh-bg text-gh-accent focus:ring-gh-accent'
-            />
-            Table layout (experimental)
+            Layout
+            <select
+              value={projectLayout}
+              onChange={(e) => {
+                const nextLayout = e.target.value as ProjectLayoutMode;
+                setProjectLayout(nextLayout);
+                if (nextLayout === 'table') {
+                  setShowDescription(true);
+                }
+              }}
+              className='h-7 rounded border border-gh-border bg-gh-bg px-2 text-xs text-gh-text focus:outline-none focus:ring-1 focus:ring-gh-accent'
+            >
+              <option value='list'>List</option>
+              <option value='table'>Table (experimental)</option>
+            </select>
           </label>
         </div>
         <button
